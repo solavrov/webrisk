@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <title>Risk</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            body {
+                visibility: hidden;
+            }
+
+            #loader {
+                visibility: visible;
+                border: 10px solid green;
+                border-radius: 50%;
+                border-top: 10px solid red;
+                border-bottom: 10px solid red;
+                width: 40px;
+                height: 40px;
+                animation: spin 1s linear infinite;
+                position: absolute;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                right: 0;
+                margin: auto;
+            }
+
+            @keyframes spin {
+                100% {
+                    transform: rotate(360deg);
+                }
+            }
+
+            #updateInfo {
+                text-align: center;
+            }
+
+            table.linked {
+                border: 1px solid black;
+                margin-left: auto;
+                margin-right: auto;
+                table-layout: auto;
+                width: 0;
+            }
+
+            table.linked th {
+                border: 1px solid black;
+            }
+
+            table.linked td {
+                border: 1px solid black;
+            }
+
+            table.linked caption {
+                text-align: center;
+            }
+
+            input.port {
+                border: none;
+                background-color: lightgreen;
+                text-align: right;
+            }
+
+        </style>
+    </head>
+    <body id="body">
+        <div id="loader"></div>
+
+        <div id="updateInfo"></div>
+        <br>
+        <div id="assetBox"></div>
+        <br>
+        <div id="portBox"></div>
+
+        <script src="https://www.gstatic.com/firebasejs/8.8.0/firebase-app.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/8.8.0/firebase-database.js"></script>
+        <script type="text/javascript" src="math.js"></script>
+        <script type="module" src="main.js"></script>
+
+        
+    </body>
+</html>
