@@ -1,3 +1,5 @@
+/* global firebase, math */
+
 import {SideTable} from "./SideTable.js";
 import {CentralTable} from "./CentralTable.js";
 import {getRowFromFB, getMatrixFromFB, indexOf, getCol} from "./funs.js";
