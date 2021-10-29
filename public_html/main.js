@@ -2,7 +2,7 @@
 
 import {SideTable} from "./SideTable.js";
 import {CentralTable} from "./CentralTable.js";
-import {getRowFromFB, getMatrixFromFB, indexOf, getCol} from "./funs.js";
+import {indexOf, getCol} from "./funs.js";
 
 const DAYS_IN_YEAR = 250;
 const ALFA_95 = -1.645;
@@ -40,9 +40,9 @@ dbRef.child("data").get().then((snapshot) => {
 
         //getting data
         updateInfo.innerHTML = "<b>Last update:</b> " + snapshot.child("refresh_time").val();
-        let tickers = getRowFromFB(snapshot.child("tickers"));
-        let erRub = math.round(getRowFromFB(snapshot.child("er_rub")), ACCURACY);
-        let covRub = math.multiply(getMatrixFromFB(snapshot.child("cov_rub")), DAYS_IN_YEAR);
+        let tickers = snapshot.child("tickers").val();
+        let erRub = math.round(snapshot.child("er_rub").val(), ACCURACY);
+        let covRub = math.multiply(snapshot.child("cov_rub").val(), DAYS_IN_YEAR);
         let sigmaRub = math.round(math.sqrt(math.diag(covRub)), ACCURACY);
         let var95Rub = math.round(math.add(erRub, math.multiply(sigmaRub, ALFA_95)), ACCURACY);
         var95Rub = math.dotMultiply(math.isNegative(var95Rub), var95Rub);

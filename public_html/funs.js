@@ -1,22 +1,6 @@
-export {getRowFromFB, getMatrixFromFB, indexOf, getCol};
+/* global math */
 
-function getRowFromFB(rowSnapshot) {
-    let x = [];
-    rowSnapshot.forEach((item) => {
-            x.push(item.val());
-        }
-    );
-    return (x);
-}
-
-function getMatrixFromFB(matrixSnapshot) {
-    let m = [];
-    matrixSnapshot.forEach((rowSnapshot) => {
-            m.push(getRowFromFB(rowSnapshot));
-        }
-    );
-    return (m);
-}
+export {indexOf, getCol};
 
 function indexOf(array, elements) {
     let indices = [];
@@ -40,7 +24,23 @@ function getCol(matrix, indexOfCol) {
     return c;
 }
 
-
+//function getRowFromFB(rowSnapshot) {
+//    let x = [];
+//    rowSnapshot.forEach((item) => {
+//            x.push(item.val());
+//        }
+//    );
+//    return (x);
+//}
+//
+//function getMatrixFromFB(matrixSnapshot) {
+//    let m = [];
+//    matrixSnapshot.forEach((rowSnapshot) => {
+//            m.push(getRowFromFB(rowSnapshot));
+//        }
+//    );
+//    return (m);
+//}
 
 // function removeItem(array, item) {
 //     return (array.filter((e) => {return (e!==item);}));
