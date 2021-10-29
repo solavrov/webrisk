@@ -68,7 +68,8 @@ dbRef.child("data").get().then((snapshot) => {
             r.push(row[2]);
             r.push(row[3]);
             return r;
-        }
+        };
+
         let portToAsset = function(row) {
             let i = tickers.indexOf(row[0]);
             let r = [];
@@ -77,7 +78,8 @@ dbRef.child("data").get().then((snapshot) => {
             r.push(var95Rub[i]);
             r.push(erRub[i]);
             return r;
-        }
+        };
+        
         portTable.link(assetTable, portToAsset, assetToPort);
 
         let recalculator = function(m) {
@@ -87,7 +89,8 @@ dbRef.child("data").get().then((snapshot) => {
                 m = math.subset(m, math.index(math.range(1, m.length), 2), c2);
             }
             return m;
-        }
+        };
+        
         portTable.addRecalculator(recalculator);
 
         let summarizer = function(m) {
@@ -109,7 +112,8 @@ dbRef.child("data").get().then((snapshot) => {
                 s4 = math.round(ALFA_95 * s3 + s5, 1);
             }
             return ["TOTAL", s1, s2, s3, s4, s5];
-        }
+        };
+        
         portTable.addSummary(summarizer);
 
         portTable.addInput(1);
