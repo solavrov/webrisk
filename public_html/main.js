@@ -48,13 +48,13 @@ dbRef.child("data").get().then((snapshot) => {
         var95Rub = math.dotMultiply(math.isNegative(var95Rub), var95Rub);
         let var99Rub = math.round(math.add(erRub, math.multiply(sigmaRub, ALFA_99)), ACCURACY);
         var99Rub = math.dotMultiply(math.isNegative(var99Rub), var99Rub);
-        let assetMatrix = math.transpose([tickers, sigmaRub, var95Rub, erRub]);
+        let assetMatrix = math.transpose([tickers, sigmaRub, var95Rub, var99Rub, erRub]);
 
         //building linked tables
-        let assetHeader = ["Ticker", "Volatility", "__VaR__", "Expected return"];
-        let assetAligns = ["center", "right", "right", "right", "right"];
-        let portHeader = ["Ticker", "Money", "Share", "Volatility", "__VaR__", "Expected return"];
-        let portAligns = ["center", "right", "right", "right", "right", "right"];
+        let assetHeader = ["Ticker", "Volatility", "VaR_95%", "VaR_99%", "Expected return"];
+        let assetAligns = ["center", "right", "right", "right", "right", "right"];
+        let portHeader = ["Ticker", "Money", "Share", "Volatility", "VaR_95%", "VaR_99%", "Expected return"];
+        let portAligns = ["center", "right", "right", "right", "right", "right", "right"];
 
         let assetTable = new SideTable(assetHeader, "st", "linked", assetAligns, "Assets");
         let portTable = new CentralTable(portHeader, "linked", "port", portAligns, "Portfolio");
@@ -67,6 +67,7 @@ dbRef.child("data").get().then((snapshot) => {
             r.push(row[1]);
             r.push(row[2]);
             r.push(row[3]);
+            r.push(row[4]);
             return r;
         };
 
@@ -76,6 +77,7 @@ dbRef.child("data").get().then((snapshot) => {
             r.push(tickers[i]);
             r.push(sigmaRub[i]);
             r.push(var95Rub[i]);
+            r.push(var99Rub[i]);
             r.push(erRub[i]);
             return r;
         };
@@ -94,12 +96,13 @@ dbRef.child("data").get().then((snapshot) => {
         portTable.addRecalculator(recalculator);
 
         let summarizer = function(m) {
-            //["Ticker", "Money", "Share", "Volatility", "VaR", "Expected return"]
+            //["Ticker", "Money", "Share", "Volatility", "VaR_95%", "VaR_99%", "Expected return"]
             let s1 = 0;
             let s2 = 0;
             let s3 = 0;
             let s4 = 0;
             let s5 = 0;
+            let s6 = 0;
             if (m.length > 1) {
                 m.shift();
                 s1 = math.sum(math.column(m, 1));
@@ -108,10 +111,13 @@ dbRef.child("data").get().then((snapshot) => {
                 let i = indexOf(tickers, getCol(m, 0));
                 let cov = math.subset(covRub, math.index(i, i));
                 s3 = math.sum(math.round(math.sqrt(math.multiply(math.transpose(w), cov, w)), 1));
-                s5 = math.sum(math.round(math.multiply(math.transpose(w), math.column(m, 5)), 1));
-                s4 = math.round(ALFA_95 * s3 + s5, 1);
+                s6 = math.sum(math.round(math.multiply(math.transpose(w), math.column(m, 6)), 1));
+                s4 = math.round(ALFA_95 * s3 + s6, 1);
+                s4 = (s4 < 0) * s4;
+                s5 = math.round(ALFA_99 * s3 + s6, 1);
+                s5 = (s5 < 0) * s5;
             }
-            return ["TOTAL", s1, s2, s3, s4, s5];
+            return ["TOTAL", s1, s2, s3, s4, s5, s6];
         };
         
         portTable.addSummary(summarizer);

@@ -75,7 +75,7 @@ class CentralTable extends SideTable {
 
     recalculate() {
         if (this.recalculator !== null) {
-            let m = this.matrix.map((row) => [...row]);
+            let m = this.matrix.map((row) => [...row]); // clone matrix
             this.matrix = this.recalculator(m);
             this.syncTableWithMatrix();
         }
