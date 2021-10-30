@@ -14,6 +14,7 @@ function indexOf(array, elements) {
     return indices;
 }
 
+//return column of matrix as one dimentional array
 function getCol(matrix, indexOfCol) {
     let c = math.column(matrix, indexOfCol);
     if (matrix.length > 1) {
