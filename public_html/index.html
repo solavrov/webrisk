@@ -35,12 +35,15 @@
             #updateInfo {
                 text-align: center;
             }
-
-            table.linked {
-                border: 1px solid black;
+            
+            table {
                 margin-left: auto;
                 margin-right: auto;
                 table-layout: auto;
+            }
+
+            table.linked {
+                border: 1px solid black;
                 width: 0;
             }
 
@@ -68,6 +71,29 @@
         <div id="loader"></div>
 
         <div id="updateInfo"></div>
+        <br>
+        
+        <table>
+            <tr>
+                <td>
+                    Base currency:
+                </td>
+                <td>
+                    <input type="radio" id="rubPick" name="curPick" value="rub" checked="checked">
+                    <label for="rubPick">RUB</label><br>
+                </td>
+                <td>
+                    <input type="radio" id="usdPick" name="curPick" value="usd">
+                    <label for="usdPick">USD</label><br>                    
+                </td>
+                <td>
+                    <input type="radio" id="eurPick" name="curPick" value="eur">
+                    <label for="eurPick">EUR</label><br>
+                </td>
+            </tr>
+        </table>
+        
+        
         <br>
         <div id="assetBox"></div>
         <br>
