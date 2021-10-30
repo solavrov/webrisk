@@ -8,6 +8,7 @@ const DAYS_IN_YEAR = 250;
 const ALFA_95 = -1.645;
 const ALFA_99 = -2.326;
 const ACCURACY = 1;
+const CURRENCIES = ['rub', 'usd', 'eur'];
 
 // Web app's Firebase configuration
 const firebaseConfig = {
@@ -41,14 +42,24 @@ dbRef.child("data").get().then((snapshot) => {
         //getting data
         updateInfo.innerHTML = "<b>Last update:</b> " + snapshot.child("refresh_time").val();
         let tickers = snapshot.child("tickers").val();
-        let erRub = math.round(snapshot.child("er_rub").val(), ACCURACY);
-        let covRub = math.multiply(snapshot.child("cov_rub").val(), DAYS_IN_YEAR);
-        let sigmaRub = math.round(math.sqrt(math.diag(covRub)), ACCURACY);
-        let var95Rub = math.round(math.add(erRub, math.multiply(sigmaRub, ALFA_95)), ACCURACY);
-        var95Rub = math.dotMultiply(math.isNegative(var95Rub), var95Rub);
-        let var99Rub = math.round(math.add(erRub, math.multiply(sigmaRub, ALFA_99)), ACCURACY);
-        var99Rub = math.dotMultiply(math.isNegative(var99Rub), var99Rub);
-        let assetMatrix = math.transpose([tickers, sigmaRub, var95Rub, var99Rub, erRub]);
+        let er = {};
+        let cov = {};
+        let sigma = {};
+        let var95 = {};
+        let var99 = {};
+        for (let c of CURRENCIES) {
+            er[c] = math.round(snapshot.child("er_" + c).val(), ACCURACY);
+            cov[c] = math.multiply(snapshot.child("cov_" + c).val(), DAYS_IN_YEAR);
+            sigma[c] = math.round(math.sqrt(math.diag(cov[c])), ACCURACY);
+            var95[c] = math.round(math.add(er[c], math.multiply(sigma[c], ALFA_95)), ACCURACY);
+            var95[c] = math.dotMultiply(math.isNegative(var95[c]), var95[c]);
+            var99[c] = math.round(math.add(er[c], math.multiply(sigma[c], ALFA_99)), ACCURACY);
+            var99[c] = math.dotMultiply(math.isNegative(var99[c]), var99[c]);
+        }
+        
+        let cur = 'usd';
+        
+        let assetMatrix = math.transpose([tickers, sigma[cur], var95[cur], var99[cur], er[cur]]);
 
         //building linked tables
         let assetHeader = ["Ticker", "Volatility", "VaR_95%", "VaR_99%", "Expected return"];
@@ -75,10 +86,10 @@ dbRef.child("data").get().then((snapshot) => {
             let i = tickers.indexOf(row[0]);
             let r = [];
             r.push(tickers[i]);
-            r.push(sigmaRub[i]);
-            r.push(var95Rub[i]);
-            r.push(var99Rub[i]);
-            r.push(erRub[i]);
+            r.push(sigma[cur][i]);
+            r.push(var95[cur][i]);
+            r.push(var99[cur][i]);
+            r.push(er[cur][i]);
             return r;
         };
         
@@ -109,8 +120,8 @@ dbRef.child("data").get().then((snapshot) => {
                 let w = math.column(m, 2);
                 s2 = math.round(math.sum(w), 1);
                 let i = indexOf(tickers, getCol(m, 0));
-                let cov = math.subset(covRub, math.index(i, i));
-                s3 = math.sum(math.round(math.sqrt(math.multiply(math.transpose(w), cov, w)), 1));
+                let cov2 = math.subset(cov[cur], math.index(i, i));
+                s3 = math.sum(math.round(math.sqrt(math.multiply(math.transpose(w), cov2, w)), 1));
                 s6 = math.sum(math.round(math.multiply(math.transpose(w), math.column(m, 6)), 1));
                 s4 = math.round(ALFA_95 * s3 + s6, 1);
                 s4 = (s4 < 0) * s4;
