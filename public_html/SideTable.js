@@ -40,7 +40,7 @@ class SideTable {
             }
         }
     }
-
+    
     removeRow(rowIndex) {
         let r = [...this.matrix[rowIndex]];
         this.centerTable.appendRow(this.adapter(r), this.name);

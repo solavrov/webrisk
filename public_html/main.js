@@ -61,40 +61,16 @@ dbRef.child("data").get().then((snapshot) => {
         
         let assetMatrix = math.transpose([tickers, sigma[cur], var95[cur], var99[cur], er[cur]]);
 
-        //building linked tables
+        //building asset table
         let assetHeader = ["Ticker", "Volatility", "VaR_95%", "VaR_99%", "Expected return"];
         let assetAligns = ["center", "right", "right", "right", "right", "right"];
+        let assetTable = new SideTable(assetHeader, "st", "linked", assetAligns, "Assets");
+        assetTable.appendMatrix(assetMatrix);
+        
+        //building port table
         let portHeader = ["Ticker", "Money", "Share", "Volatility", "VaR_95%", "VaR_99%", "Expected return"];
         let portAligns = ["center", "right", "right", "right", "right", "right", "right"];
-
-        let assetTable = new SideTable(assetHeader, "st", "linked", assetAligns, "Assets");
         let portTable = new CentralTable(portHeader, "linked", "port", portAligns, "Portfolio");
-
-        let assetToPort = function(row) {
-            let r = [];
-            r.push(row[0]);
-            r.push(100);
-            r.push(0);
-            r.push(row[1]);
-            r.push(row[2]);
-            r.push(row[3]);
-            r.push(row[4]);
-            return r;
-        };
-
-        let portToAsset = function(row) {
-            let i = tickers.indexOf(row[0]);
-            let r = [];
-            r.push(tickers[i]);
-            r.push(sigma[cur][i]);
-            r.push(var95[cur][i]);
-            r.push(var99[cur][i]);
-            r.push(er[cur][i]);
-            return r;
-        };
-        
-        portTable.link(assetTable, portToAsset, assetToPort);
-
         let recalculator = function(m) {
             if (m.length > 1) {
                 let c = math.subset(m, math.index(math.range(1, m.length), 1));
@@ -102,10 +78,8 @@ dbRef.child("data").get().then((snapshot) => {
                 m = math.subset(m, math.index(math.range(1, m.length), 2), c2);
             }
             return m;
-        };
-        
+        }; 
         portTable.addRecalculator(recalculator);
-
         let summarizer = function(m) {
             //["Ticker", "Money", "Share", "Volatility", "VaR_95%", "VaR_99%", "Expected return"]
             let s1 = 0;
@@ -129,16 +103,39 @@ dbRef.child("data").get().then((snapshot) => {
                 s5 = (s5 < 0) * s5;
             }
             return ["TOTAL", s1, s2, s3, s4, s5, s6];
-        };
-        
+        };    
         portTable.addSummary(summarizer);
-
         portTable.addInput(1);
-
-        assetTable.appendMatrix(assetMatrix);
-
+        
+        //linking tables
+        let assetToPort = function(row) {
+            let r = [];
+            r.push(row[0]);
+            r.push(100);
+            r.push(0);
+            r.push(row[1]);
+            r.push(row[2]);
+            r.push(row[3]);
+            r.push(row[4]);
+            return r;
+        };
+        let portToAsset = function(row) {
+            let i = tickers.indexOf(row[0]);
+            let r = [];
+            r.push(tickers[i]);
+            r.push(sigma[cur][i]);
+            r.push(var95[cur][i]);
+            r.push(var99[cur][i]);
+            r.push(er[cur][i]);
+            return r;
+        };
+        portTable.link(assetTable, portToAsset, assetToPort);
+        
+        //appending tables to html
         assetBox.appendChild(assetTable.table);
         portBox.appendChild(portTable.table);
+        
+        
 
 
 
