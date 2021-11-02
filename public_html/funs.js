@@ -1,6 +1,6 @@
 /* global math */
 
-export {indexOf, getCol};
+export {indexOf, getCol, insert};
 
 function indexOf(array, elements) {
     let indices = [];
@@ -23,6 +23,12 @@ function getCol(matrix, indexOfCol) {
         c = [c];
     }
     return c;
+}
+
+//insert submatrix of first matrix into submatrix of second matrix
+function insert(matrixFrom, matrixTo, indicesFrom, indicesTo) {
+    let matrixToInsert = math.subset(matrixFrom, indicesFrom);
+    return math.subset(matrixTo, indicesTo, matrixToInsert);
 }
 
 //function getRowFromFB(rowSnapshot) {

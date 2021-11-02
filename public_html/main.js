@@ -2,7 +2,7 @@
 
 import {SideTable} from "./SideTable.js";
 import {CentralTable} from "./CentralTable.js";
-import {indexOf, getCol} from "./funs.js";
+import {indexOf, getCol, insert} from "./funs.js";
 
 const DAYS_IN_YEAR = 250;
 const ALFA_95 = -1.645;
@@ -32,6 +32,7 @@ let loader = document.getElementById("loader");
 let updateInfo  = document.getElementById("updateInfo");
 let assetBox = document.getElementById("assetBox");
 let portBox = document.getElementById("portBox");
+let curPick = document.getElementsByName("curPick");
 
 dbRef.child("data").get().then((snapshot) => {
   
@@ -47,6 +48,7 @@ dbRef.child("data").get().then((snapshot) => {
         let sigma = {};
         let var95 = {};
         let var99 = {};
+        let assetMatrices = {};
         for (let c of CURRENCIES) {
             er[c] = math.round(snapshot.child("er_" + c).val(), ACCURACY);
             cov[c] = math.multiply(snapshot.child("cov_" + c).val(), DAYS_IN_YEAR);
@@ -55,17 +57,15 @@ dbRef.child("data").get().then((snapshot) => {
             var95[c] = math.dotMultiply(math.isNegative(var95[c]), var95[c]);
             var99[c] = math.round(math.add(er[c], math.multiply(sigma[c], ALFA_99)), ACCURACY);
             var99[c] = math.dotMultiply(math.isNegative(var99[c]), var99[c]);
+            assetMatrices[c] = math.transpose([tickers, sigma[c], var95[c], var99[c], er[c]]);
         }
+        let cur = 'rub';
         
-        let cur = 'usd';
-        
-        let assetMatrix = math.transpose([tickers, sigma[cur], var95[cur], var99[cur], er[cur]]);
-
         //building asset table
         let assetHeader = ["Ticker", "Volatility", "VaR_95%", "VaR_99%", "Expected return"];
         let assetAligns = ["center", "right", "right", "right", "right", "right"];
         let assetTable = new SideTable(assetHeader, "st", "linked", assetAligns, "Assets");
-        assetTable.appendMatrix(assetMatrix);
+        assetTable.appendMatrix(assetMatrices[cur]);
         
         //building port table
         let portHeader = ["Ticker", "Money", "Share", "Volatility", "VaR_95%", "VaR_99%", "Expected return"];
@@ -94,8 +94,8 @@ dbRef.child("data").get().then((snapshot) => {
                 let w = math.column(m, 2);
                 s2 = math.round(math.sum(w), 1);
                 let i = indexOf(tickers, getCol(m, 0));
-                let cov2 = math.subset(cov[cur], math.index(i, i));
-                s3 = math.sum(math.round(math.sqrt(math.multiply(math.transpose(w), cov2, w)), 1));
+                let subcov = math.subset(cov[cur], math.index(i, i));
+                s3 = math.sum(math.round(math.sqrt(math.multiply(math.transpose(w), subcov, w)), 1));
                 s6 = math.sum(math.round(math.multiply(math.transpose(w), math.column(m, 6)), 1));
                 s4 = math.round(ALFA_95 * s3 + s6, 1);
                 s4 = (s4 < 0) * s4;
@@ -135,9 +135,26 @@ dbRef.child("data").get().then((snapshot) => {
         assetBox.appendChild(assetTable.table);
         portBox.appendChild(portTable.table);
         
+        //changing currency
+        let refreshTableCur = function(table, iTo) {
+            let jFrom = indexOf(tickers, getCol(table.matrix, 0));
+            jFrom.shift();
+            if (jFrom.length > 0) {
+                let iFrom = [1, 2, 3, 4];
+                let jTo = math.range(1, table.matrix.length);
+                table.matrix = insert(assetMatrices[cur], table.matrix, math.index(jFrom, iFrom), math.index(jTo, iTo));
+                table.syncTableWithMatrix();
+            }
+        };
+
+        curPick.forEach((elem) => elem.addEventListener("click", function(event) {
+            cur = event.target.value;
+            refreshTableCur(assetTable, [1, 2, 3, 4]);
+            refreshTableCur(portTable, [3, 4, 5, 6]);
+            portTable.refreshSummary();
+        }));
+
         
-
-
 
 
 
