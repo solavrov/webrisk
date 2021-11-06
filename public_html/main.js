@@ -54,9 +54,9 @@ dbRef.child("data").get().then((snapshot) => {
             cov[c] = math.multiply(snapshot.child("cov_" + c).val(), DAYS_IN_YEAR);
             sigma[c] = math.round(math.sqrt(math.diag(cov[c])), ACCURACY);
             var95[c] = math.round(math.add(er[c], math.multiply(sigma[c], ALFA_95)), ACCURACY);
-            var95[c] = math.dotMultiply(math.isNegative(var95[c]), var95[c]);
+            //var95[c] = math.dotMultiply(math.isNegative(var95[c]), var95[c]);
             var99[c] = math.round(math.add(er[c], math.multiply(sigma[c], ALFA_99)), ACCURACY);
-            var99[c] = math.dotMultiply(math.isNegative(var99[c]), var99[c]);
+            //var99[c] = math.dotMultiply(math.isNegative(var99[c]), var99[c]);
             assetMatrices[c] = math.transpose([tickers, sigma[c], var95[c], var99[c], er[c]]);
         }
         let cur = 'rub';
@@ -98,9 +98,9 @@ dbRef.child("data").get().then((snapshot) => {
                 s3 = math.sum(math.round(math.sqrt(math.multiply(math.transpose(w), subcov, w)), 1));
                 s6 = math.sum(math.round(math.multiply(math.transpose(w), math.column(m, 6)), 1));
                 s4 = math.round(ALFA_95 * s3 + s6, 1);
-                s4 = (s4 < 0) * s4;
+                //s4 = (s4 < 0) * s4;
                 s5 = math.round(ALFA_99 * s3 + s6, 1);
-                s5 = (s5 < 0) * s5;
+                //s5 = (s5 < 0) * s5;
             }
             return ["TOTAL", s1, s2, s3, s4, s5, s6];
         };    
