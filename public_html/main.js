@@ -48,6 +48,8 @@ dbRef.child("data").get().then((snapshot) => {
         //getting data
         updateInfo.innerHTML = "<b>Last update:</b> " + snapshot.child("refresh_time").val();
         let tickers = snapshot.child("tickers").val();
+        let types = snapshot.child("types").val();
+        let names = snapshot.child("names").val();
         let er = {};
         let cov = {};
         let sigma = {};
@@ -62,14 +64,13 @@ dbRef.child("data").get().then((snapshot) => {
             //var95[c] = math.dotMultiply(math.isNegative(var95[c]), var95[c]);
             var99[c] = math.round(math.add(er[c], math.multiply(sigma[c], ALFA_99)), ACCURACY);
             //var99[c] = math.dotMultiply(math.isNegative(var99[c]), var99[c]);
-            assetMatrices[c] = math.transpose([tickers, sigma[c], var95[c], var99[c], er[c]]);
+            assetMatrices[c] = math.transpose([tickers, names, sigma[c], var95[c], var99[c], er[c]]);
         }
-        let types = snapshot.child("types").val();
         let cur = 'rub';
         
         //building asset tables
-        let assetHeader = ["Ticker", "Volatility", "VaR_95%", "VaR_99%", "Expected return"];
-        let assetAligns = ["center", "right", "right", "right", "right", "right"];
+        let assetHeader = ["Ticker", "Name", "Volatility", "VaR_95%", "VaR_99%", "Expected return"];
+        let assetAligns = ["center", "left", "right", "right", "right", "right", "right"];
         
         let stockUsTable = new SideTable(assetHeader, "us_stocks", "linked", assetAligns, "US Stocks");
         stockUsTable.appendMatrix(getRows(assetMatrices[cur], allIndices(types, "stock_us")));
@@ -135,16 +136,17 @@ dbRef.child("data").get().then((snapshot) => {
             r.push(row[0]);
             r.push(100);
             r.push(0);
-            r.push(row[1]);
             r.push(row[2]);
             r.push(row[3]);
             r.push(row[4]);
+            r.push(row[5]);
             return r;
         };
         let portToAsset = function(row) {
             let i = tickers.indexOf(row[0]);
             let r = [];
             r.push(tickers[i]);
+            r.push(names[i]);
             r.push(sigma[cur][i]);
             r.push(var95[cur][i]);
             r.push(var99[cur][i]);
