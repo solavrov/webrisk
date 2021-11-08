@@ -1,16 +1,24 @@
 /* global math */
 
-export {indexOf, getCol, insert};
+export {indexOf, allIndices, getCol, getRows, insert};
 
-function indexOf(array, elements) {
+function indexOf(array, vals) {
     let indices = [];
-    if (Array.isArray(elements)) {
-        for (let e of elements) {
-            indices.push(array.indexOf(e));
+    if (Array.isArray(vals)) {
+        for (let v of vals) {
+            indices.push(array.indexOf(v));
         }
     } else {
-        indices.push(array.indexOf(elements));
+        indices.push(array.indexOf(vals));
     }
+    return indices;
+}
+
+function allIndices(array, val) {
+    let indices = [];
+    for(let i = 0; i < array.length; i++)
+        if (array[i] === val)
+            indices.push(i);
     return indices;
 }
 
@@ -23,6 +31,11 @@ function getCol(matrix, indexOfCol) {
         c = [c];
     }
     return c;
+}
+
+function getRows(matrix, indicesOfRows) {
+    let n = math.size(matrix)[1];
+    return math.subset(matrix, math.index(indicesOfRows, math.range(0, n)));
 }
 
 //insert submatrix of first matrix into submatrix of second matrix

@@ -2,7 +2,7 @@
 
 import {SideTable} from "./SideTable.js";
 import {CentralTable} from "./CentralTable.js";
-import {indexOf, getCol, insert} from "./funs.js";
+import {indexOf, allIndices, getCol, getRows, insert} from "./funs.js";
 
 const DAYS_IN_YEAR = 250;
 const ALFA_95 = -1.645;
@@ -30,7 +30,12 @@ const dbRef = firebase.database().ref();
 let body  = document.getElementById("body");
 let loader = document.getElementById("loader");
 let updateInfo  = document.getElementById("updateInfo");
-let assetBox = document.getElementById("assetBox");
+let stockUsBox = document.getElementById("stockUsBox");
+let stockRuBox = document.getElementById("stockRuBox");
+let bondBox = document.getElementById("bondBox");
+let commodityBox = document.getElementById("commodityBox");
+let etfBox = document.getElementById("etfBox");
+let cryptoBox = document.getElementById("cryptoBox");
 let portBox = document.getElementById("portBox");
 let curPick = document.getElementsByName("curPick");
 
@@ -59,13 +64,30 @@ dbRef.child("data").get().then((snapshot) => {
             //var99[c] = math.dotMultiply(math.isNegative(var99[c]), var99[c]);
             assetMatrices[c] = math.transpose([tickers, sigma[c], var95[c], var99[c], er[c]]);
         }
+        let types = snapshot.child("types").val();
         let cur = 'rub';
         
-        //building asset table
+        //building asset tables
         let assetHeader = ["Ticker", "Volatility", "VaR_95%", "VaR_99%", "Expected return"];
         let assetAligns = ["center", "right", "right", "right", "right", "right"];
-        let assetTable = new SideTable(assetHeader, "st", "linked", assetAligns, "Assets");
-        assetTable.appendMatrix(assetMatrices[cur]);
+        
+        let stockUsTable = new SideTable(assetHeader, "us_stocks", "linked", assetAligns, "US Stocks");
+        stockUsTable.appendMatrix(getRows(assetMatrices[cur], allIndices(types, "stock_us")));
+
+        let stockRuTable = new SideTable(assetHeader, "ru_stocks", "linked", assetAligns, "RU Stocks");
+        stockRuTable.appendMatrix(getRows(assetMatrices[cur], allIndices(types, "stock_ru")));
+        
+        let bondTable = new SideTable(assetHeader, "bonds", "linked", assetAligns, "Risk free bonds");
+        bondTable.appendMatrix(getRows(assetMatrices[cur], allIndices(types, "bond")));
+
+        let commodityTable = new SideTable(assetHeader, "commodities", "linked", assetAligns, "Commodities");
+        commodityTable.appendMatrix(getRows(assetMatrices[cur], allIndices(types, "commodity")));
+        
+        let etfTable = new SideTable(assetHeader, "etfs", "linked", assetAligns, "ETFs");
+        etfTable.appendMatrix(getRows(assetMatrices[cur], allIndices(types, "etf")));
+        
+        let cryptoTable = new SideTable(assetHeader, "crypto", "linked", assetAligns, "Crypto");
+        cryptoTable.appendMatrix(getRows(assetMatrices[cur], allIndices(types, "crypto")));
         
         //building port table
         let portHeader = ["Ticker", "Money", "Share", "Volatility", "VaR_95%", "VaR_99%", "Expected return"];
@@ -129,10 +151,21 @@ dbRef.child("data").get().then((snapshot) => {
             r.push(er[cur][i]);
             return r;
         };
-        portTable.link(assetTable, portToAsset, assetToPort);
+        
+        portTable.link(stockUsTable, portToAsset, assetToPort);
+        portTable.link(stockRuTable, portToAsset, assetToPort);
+        portTable.link(bondTable, portToAsset, assetToPort);
+        portTable.link(commodityTable, portToAsset, assetToPort);
+        portTable.link(etfTable, portToAsset, assetToPort);
+        portTable.link(cryptoTable, portToAsset, assetToPort);
         
         //appending tables to html
-        assetBox.appendChild(assetTable.table);
+        stockUsBox.appendChild(stockUsTable.table);
+        stockRuBox.appendChild(stockRuTable.table);
+        bondBox.appendChild(bondTable.table);
+        commodityBox.appendChild(commodityTable.table);
+        etfBox.appendChild(etfTable.table);
+        cryptoBox.appendChild(cryptoTable.table);
         portBox.appendChild(portTable.table);
         
         //changing currency
@@ -149,7 +182,12 @@ dbRef.child("data").get().then((snapshot) => {
 
         curPick.forEach((elem) => elem.addEventListener("click", function(event) {
             cur = event.target.value;
-            refreshTableCur(assetTable, [1, 2, 3, 4]);
+            refreshTableCur(stockUsTable, [1, 2, 3, 4]);
+            refreshTableCur(stockRuTable, [1, 2, 3, 4]);
+            refreshTableCur(bondTable, [1, 2, 3, 4]);
+            refreshTableCur(commodityTable, [1, 2, 3, 4]);
+            refreshTableCur(etfTable, [1, 2, 3, 4]);
+            refreshTableCur(cryptoTable, [1, 2, 3, 4]);
             refreshTableCur(portTable, [3, 4, 5, 6]);
             portTable.refreshSummary();
         }));
