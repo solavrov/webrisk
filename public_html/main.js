@@ -125,6 +125,7 @@ dbRef.child("data").get().then((snapshot) => {
         };    
         portTable.addSummary(summarizer);
         portTable.addInput(1);
+        portTable.addInput(6);
         
         //linking tables
         let assetToPort = function(row) {
