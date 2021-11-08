@@ -78,7 +78,7 @@ dbRef.child("data").get().then((snapshot) => {
         let stockRuTable = new SideTable(assetHeader, "ru_stocks", "linked", assetAligns, "RU Stocks");
         stockRuTable.appendMatrix(getRows(assetMatrices[cur], allIndices(types, "stock_ru")));
         
-        let bondTable = new SideTable(assetHeader, "bonds", "linked", assetAligns, "Risk free bonds");
+        let bondTable = new SideTable(assetHeader, "bonds", "linked", assetAligns, "Bonds");
         bondTable.appendMatrix(getRows(assetMatrices[cur], allIndices(types, "bond")));
 
         let commodityTable = new SideTable(assetHeader, "commodities", "linked", assetAligns, "Commodities");
