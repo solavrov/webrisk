@@ -1,6 +1,6 @@
 /* global math */
 
-export {indexOf, allIndices, getCol, getRows, insert};
+export {indexOf, allIndices, getCol, getRows, insert, contToSimp};
 
 function indexOf(array, vals) {
     let indices = [];
@@ -42,6 +42,10 @@ function getRows(matrix, indicesOfRows) {
 function insert(matrixFrom, matrixTo, indicesFrom, indicesTo) {
     let matrixToInsert = math.subset(matrixFrom, indicesFrom);
     return math.subset(matrixTo, indicesTo, matrixToInsert);
+}
+
+function contToSimp(r) {
+    return math.multiply(math.subtract(math.exp(math.divide(r, 100)), 1), 100);
 }
 
 //function getRowFromFB(rowSnapshot) {

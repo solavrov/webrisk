@@ -2,7 +2,7 @@
 
 import {SideTable} from "./SideTable.js";
 import {CentralTable} from "./CentralTable.js";
-import {indexOf, allIndices, getCol, getRows, insert} from "./funs.js";
+import {indexOf, allIndices, getCol, getRows, insert, contToSimp} from "./funs.js";
 
 const DAYS_IN_YEAR = 250;
 const ALFA_95 = -1.645;
@@ -60,10 +60,8 @@ dbRef.child("data").get().then((snapshot) => {
             er[c] = math.round(snapshot.child("er_" + c).val(), ACCURACY);
             cov[c] = math.multiply(snapshot.child("cov_" + c).val(), DAYS_IN_YEAR);
             sigma[c] = math.round(math.sqrt(math.diag(cov[c])), ACCURACY);
-            var95[c] = math.round(math.add(er[c], math.multiply(sigma[c], ALFA_95)), ACCURACY);
-            //var95[c] = math.dotMultiply(math.isNegative(var95[c]), var95[c]);
-            var99[c] = math.round(math.add(er[c], math.multiply(sigma[c], ALFA_99)), ACCURACY);
-            //var99[c] = math.dotMultiply(math.isNegative(var99[c]), var99[c]);
+            var95[c] = math.round(contToSimp(math.add(er[c], math.multiply(sigma[c], ALFA_95))), ACCURACY);
+            var99[c] = math.round(contToSimp(math.add(er[c], math.multiply(sigma[c], ALFA_99))), ACCURACY);
             assetMatrices[c] = math.transpose([tickers, names, sigma[c], var95[c], var99[c], er[c]]);
         }
         let cur = 'rub';
@@ -118,12 +116,10 @@ dbRef.child("data").get().then((snapshot) => {
                 s2 = math.round(math.sum(w), 1);
                 let i = indexOf(tickers, getCol(m, 0));
                 let subcov = math.subset(cov[cur], math.index(i, i));
-                s3 = math.sum(math.round(math.sqrt(math.multiply(math.transpose(w), subcov, w)), 1));
-                s6 = math.sum(math.round(math.multiply(math.transpose(w), math.column(m, 6)), 1));
-                s4 = math.round(ALFA_95 * s3 + s6, 1);
-                //s4 = (s4 < 0) * s4;
-                s5 = math.round(ALFA_99 * s3 + s6, 1);
-                //s5 = (s5 < 0) * s5;
+                s3 = math.round(math.sum(math.sqrt(math.multiply(math.transpose(w), subcov, w))), ACCURACY);
+                s6 = math.round(math.sum(math.multiply(math.transpose(w), math.column(m, 6))), ACCURACY);
+                s4 = math.round(contToSimp(ALFA_95 * s3 + s6), ACCURACY);
+                s5 = math.round(contToSimp(ALFA_99 * s3 + s6), ACCURACY);
             }
             return ["TOTAL", s1, s2, s3, s4, s5, s6];
         };    
@@ -175,7 +171,7 @@ dbRef.child("data").get().then((snapshot) => {
             let jFrom = indexOf(tickers, getCol(table.matrix, 0));
             jFrom.shift();
             if (jFrom.length > 0) {
-                let iFrom = [1, 2, 3, 4];
+                let iFrom = [2, 3, 4, 5];
                 let jTo = math.range(1, table.matrix.length);
                 table.matrix = insert(assetMatrices[cur], table.matrix, math.index(jFrom, iFrom), math.index(jTo, iTo));
                 table.syncTableWithMatrix();
@@ -184,12 +180,12 @@ dbRef.child("data").get().then((snapshot) => {
 
         curPick.forEach((elem) => elem.addEventListener("click", function(event) {
             cur = event.target.value;
-            refreshTableCur(stockUsTable, [1, 2, 3, 4]);
-            refreshTableCur(stockRuTable, [1, 2, 3, 4]);
-            refreshTableCur(bondTable, [1, 2, 3, 4]);
-            refreshTableCur(commodityTable, [1, 2, 3, 4]);
-            refreshTableCur(etfTable, [1, 2, 3, 4]);
-            refreshTableCur(cryptoTable, [1, 2, 3, 4]);
+            refreshTableCur(stockUsTable, [2, 3, 4, 5]);
+            refreshTableCur(stockRuTable, [2, 3, 4, 5]);
+            refreshTableCur(bondTable, [2, 3, 4, 5]);
+            refreshTableCur(commodityTable, [2, 3, 4, 5]);
+            refreshTableCur(etfTable, [2, 3, 4, 5]);
+            refreshTableCur(cryptoTable, [2, 3, 4, 5]);
             refreshTableCur(portTable, [3, 4, 5, 6]);
             portTable.refreshSummary();
         }));
