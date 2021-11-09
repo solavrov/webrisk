@@ -47,22 +47,22 @@ dbRef.child("data").get().then((snapshot) => {
 
         //getting data
         updateInfo.innerHTML = "<b>Last update:</b> " + snapshot.child("refresh_time").val();
-        let tickers = snapshot.child("tickers").val();
-        let types = snapshot.child("types").val();
-        let names = snapshot.child("names").val();
-        let er = {};
-        let cov = {};
-        let sigma = {};
-        let var95 = {};
-        let var99 = {};
-        let assetMatrices = {};
+        let TICKERS = snapshot.child("tickers").val();
+        let TYPES = snapshot.child("types").val();
+        let NAMES = snapshot.child("names").val();
+        let ER = {};
+        let COV = {};
+        let SIGMA = {};
+        let VAR95 = {};
+        let VAR99 = {};
+        let ASSET_MATRICES = {};
         for (let c of CURRENCIES) {
-            er[c] = math.round(snapshot.child("er_" + c).val(), ACCURACY);
-            cov[c] = math.multiply(snapshot.child("cov_" + c).val(), DAYS_IN_YEAR);
-            sigma[c] = math.round(math.sqrt(math.diag(cov[c])), ACCURACY);
-            var95[c] = math.round(contToSimp(math.add(er[c], math.multiply(sigma[c], ALFA_95))), ACCURACY);
-            var99[c] = math.round(contToSimp(math.add(er[c], math.multiply(sigma[c], ALFA_99))), ACCURACY);
-            assetMatrices[c] = math.transpose([tickers, names, sigma[c], var95[c], var99[c], er[c]]);
+            ER[c] = math.round(snapshot.child("er_" + c).val(), ACCURACY);
+            COV[c] = math.multiply(snapshot.child("cov_" + c).val(), DAYS_IN_YEAR);
+            SIGMA[c] = math.round(math.sqrt(math.diag(COV[c])), ACCURACY);
+            VAR95[c] = math.round(contToSimp(math.add(ER[c], math.multiply(SIGMA[c], ALFA_95))), ACCURACY);
+            VAR99[c] = math.round(contToSimp(math.add(ER[c], math.multiply(SIGMA[c], ALFA_99))), ACCURACY);
+            ASSET_MATRICES[c] = math.transpose([TICKERS, NAMES, SIGMA[c], VAR95[c], VAR99[c], ER[c]]);
         }
         let cur = 'rub';
         
@@ -71,22 +71,22 @@ dbRef.child("data").get().then((snapshot) => {
         let assetAligns = ["center", "left", "right", "right", "right", "right", "right"];
         
         let stockUsTable = new SideTable(assetHeader, "us_stocks", "linked", assetAligns, "US Stocks");
-        stockUsTable.appendMatrix(getRows(assetMatrices[cur], allIndices(types, "stock_us")));
+        stockUsTable.appendMatrix(getRows(ASSET_MATRICES[cur], allIndices(TYPES, "stock_us")));
 
         let stockRuTable = new SideTable(assetHeader, "ru_stocks", "linked", assetAligns, "RU Stocks");
-        stockRuTable.appendMatrix(getRows(assetMatrices[cur], allIndices(types, "stock_ru")));
+        stockRuTable.appendMatrix(getRows(ASSET_MATRICES[cur], allIndices(TYPES, "stock_ru")));
         
         let bondTable = new SideTable(assetHeader, "bonds", "linked", assetAligns, "Bonds");
-        bondTable.appendMatrix(getRows(assetMatrices[cur], allIndices(types, "bond")));
+        bondTable.appendMatrix(getRows(ASSET_MATRICES[cur], allIndices(TYPES, "bond")));
 
         let commodityTable = new SideTable(assetHeader, "commodities", "linked", assetAligns, "Commodities");
-        commodityTable.appendMatrix(getRows(assetMatrices[cur], allIndices(types, "commodity")));
+        commodityTable.appendMatrix(getRows(ASSET_MATRICES[cur], allIndices(TYPES, "commodity")));
         
         let etfTable = new SideTable(assetHeader, "etfs", "linked", assetAligns, "ETFs");
-        etfTable.appendMatrix(getRows(assetMatrices[cur], allIndices(types, "etf")));
+        etfTable.appendMatrix(getRows(ASSET_MATRICES[cur], allIndices(TYPES, "etf")));
         
         let cryptoTable = new SideTable(assetHeader, "crypto", "linked", assetAligns, "Crypto");
-        cryptoTable.appendMatrix(getRows(assetMatrices[cur], allIndices(types, "crypto")));
+        cryptoTable.appendMatrix(getRows(ASSET_MATRICES[cur], allIndices(TYPES, "crypto")));
         
         //building port table
         let portHeader = ["Ticker", "Money", "Share", "Volatility", "VaR_95%", "VaR_99%", "Expected return"];
@@ -119,8 +119,8 @@ dbRef.child("data").get().then((snapshot) => {
                 s1 = math.sum(math.column(m, 1));
                 let w = math.column(m, 2);
                 s2 = math.round(math.sum(w), 1);
-                let i = indexOf(tickers, getColAsArr(m, 0));
-                let subcov = math.subset(cov[cur], math.index(i, i));
+                let i = indexOf(TICKERS, getColAsArr(m, 0));
+                let subcov = math.subset(COV[cur], math.index(i, i));
                 s3 = math.round(math.sum(math.sqrt(math.multiply(math.transpose(w), subcov, w))), ACCURACY);
                 s6 = math.round(math.sum(math.multiply(math.transpose(w), math.column(m, 6))), ACCURACY);
                 s4 = math.round(contToSimp(ALFA_95 * s3 + s6), ACCURACY);
@@ -145,14 +145,14 @@ dbRef.child("data").get().then((snapshot) => {
             return r;
         };
         let portToAsset = function(row) {
-            let i = tickers.indexOf(row[0]);
+            let i = TICKERS.indexOf(row[0]);
             let r = [];
-            r.push(tickers[i]);
-            r.push(names[i]);
-            r.push(sigma[cur][i]);
-            r.push(var95[cur][i]);
-            r.push(var99[cur][i]);
-            r.push(er[cur][i]);
+            r.push(TICKERS[i]);
+            r.push(NAMES[i]);
+            r.push(SIGMA[cur][i]);
+            r.push(VAR95[cur][i]);
+            r.push(VAR99[cur][i]);
+            r.push(ER[cur][i]);
             return r;
         };
         
@@ -174,12 +174,12 @@ dbRef.child("data").get().then((snapshot) => {
         
         //changing currency
         let refreshTableCur = function(table, iTo) {
-            let jFrom = indexOf(tickers, getColAsArr(table.matrix, 0));
+            let jFrom = indexOf(TICKERS, getColAsArr(table.matrix, 0));
             jFrom.shift();
             if (jFrom.length > 0) {
                 let iFrom = [2, 3, 4, 5];
                 let jTo = math.range(1, table.matrix.length);
-                table.matrix = insert(assetMatrices[cur], table.matrix, math.index(jFrom, iFrom), math.index(jTo, iTo));
+                table.matrix = insert(ASSET_MATRICES[cur], table.matrix, math.index(jFrom, iFrom), math.index(jTo, iTo));
                 table.syncTableWithMatrix();
             }
         };
