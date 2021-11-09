@@ -1,6 +1,6 @@
 /* global math */
 
-export {indexOf, allIndices, getCol, getRows, insert, contToSimp};
+export {indexOf, allIndices, getColAsArr, getRows, insert, contToSimp};
 
 function indexOf(array, vals) {
     let indices = [];
@@ -23,7 +23,7 @@ function allIndices(array, val) {
 }
 
 //return column of matrix as one dimentional array
-function getCol(matrix, indexOfCol) {
+function getColAsArr(matrix, indexOfCol) {
     let c = math.column(matrix, indexOfCol);
     if (matrix.length > 1) {
         c = math.transpose(c)[0];

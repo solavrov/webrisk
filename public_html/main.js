@@ -2,7 +2,7 @@
 
 import {SideTable} from "./SideTable.js";
 import {CentralTable} from "./CentralTable.js";
-import {indexOf, allIndices, getCol, getRows, insert, contToSimp} from "./funs.js";
+import {indexOf, allIndices, getColAsArr, getRows, insert, contToSimp} from "./funs.js";
 
 const DAYS_IN_YEAR = 250;
 const ALFA_95 = -1.645;
@@ -67,7 +67,7 @@ dbRef.child("data").get().then((snapshot) => {
         let cur = 'rub';
         
         //building asset tables
-        let assetHeader = ["Ticker", "Name", "Volatility", "VaR_95%", "VaR_99%", "Expected return"];
+        let assetHeader = ["Ticker", "________Name________", "Volatility", "VaR_95%", "VaR_99%", "Expected return"];
         let assetAligns = ["center", "left", "right", "right", "right", "right", "right"];
         
         let stockUsTable = new SideTable(assetHeader, "us_stocks", "linked", assetAligns, "US Stocks");
@@ -114,7 +114,7 @@ dbRef.child("data").get().then((snapshot) => {
                 s1 = math.sum(math.column(m, 1));
                 let w = math.column(m, 2);
                 s2 = math.round(math.sum(w), 1);
-                let i = indexOf(tickers, getCol(m, 0));
+                let i = indexOf(tickers, getColAsArr(m, 0));
                 let subcov = math.subset(cov[cur], math.index(i, i));
                 s3 = math.round(math.sum(math.sqrt(math.multiply(math.transpose(w), subcov, w))), ACCURACY);
                 s6 = math.round(math.sum(math.multiply(math.transpose(w), math.column(m, 6))), ACCURACY);
@@ -169,7 +169,7 @@ dbRef.child("data").get().then((snapshot) => {
         
         //changing currency
         let refreshTableCur = function(table, iTo) {
-            let jFrom = indexOf(tickers, getCol(table.matrix, 0));
+            let jFrom = indexOf(tickers, getColAsArr(table.matrix, 0));
             jFrom.shift();
             if (jFrom.length > 0) {
                 let iFrom = [2, 3, 4, 5];
