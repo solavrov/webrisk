@@ -2,7 +2,7 @@
 
 import {SideTable} from "./SideTable.js";
 import {CentralTable} from "./CentralTable.js";
-import {indexOf, allIndices, getColAsArr, getRows, insert, contToSimp} from "./funs.js";
+import {indexOf, allIndices, getColAsArr, getRows, getCols, insert, contToSimp, lessHeader} from "./funs.js";
 
 const DAYS_IN_YEAR = 250;
 const ALFA_95 = -1.645;
@@ -94,9 +94,14 @@ dbRef.child("data").get().then((snapshot) => {
         let portTable = new CentralTable(portHeader, "linked", "port", portAligns, "Portfolio");
         let recalculator = function(m) {
             if (m.length > 1) {
-                let c = math.subset(m, math.index(math.range(1, m.length), 1));
+                let c = getCols(lessHeader(m), [1]);
                 let c2 = math.round(math.multiply(c, 1 / math.sum(c)), 3);
                 m = math.subset(m, math.index(math.range(1, m.length), 2), c2);
+                
+//                let i = indexOf(tickers, getColAsArr(m, 0));
+//                let r = math.subset(m, math.index(math.range(1, m.length), 1));
+//                let var95 = math.round(contToSimp(math.add(er[cur], math.multiply(sigma[cur], ALFA_95))), ACCURACY);
+//                let var99 = math.round(contToSimp(math.add(er[cur], math.multiply(sigma[cur], ALFA_99))), ACCURACY);
             }
             return m;
         }; 

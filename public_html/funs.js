@@ -1,6 +1,6 @@
 /* global math */
 
-export {indexOf, allIndices, getColAsArr, getRows, insert, contToSimp};
+export {indexOf, allIndices, getColAsArr, getRows, getCols, insert, contToSimp, lessHeader};
 
 function indexOf(array, vals) {
     let indices = [];
@@ -36,6 +36,17 @@ function getColAsArr(matrix, indexOfCol) {
 function getRows(matrix, indicesOfRows) {
     let n = math.size(matrix)[1];
     return math.subset(matrix, math.index(indicesOfRows, math.range(0, n)));
+}
+
+function getCols(matrix, indicesOfCols) {
+    let m = math.size(matrix)[0];
+    return math.subset(matrix, math.index(math.range(0, m), indicesOfCols));
+}
+
+function lessHeader(matrix) {
+    let m = math.size(matrix)[0];
+    let n = math.size(matrix)[1];
+    return math.subset(matrix, math.index(math.range(1, m), math.range(0, n)));
 }
 
 //insert submatrix of first matrix into submatrix of second matrix
