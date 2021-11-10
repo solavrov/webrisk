@@ -2,7 +2,17 @@
 
 import {SideTable} from "./SideTable.js";
 import {CentralTable} from "./CentralTable.js";
-import {indexOf, allIndices, getColAsArr, getRows, getCols, insert, contToSimp, lessHeader} from "./funs.js";
+import {
+    getIndices, 
+    allIndices, 
+    getRows, 
+    getCols, 
+    insert, 
+    contToSimp,
+    insertCols,
+    getVals,
+    colToArr
+} from "./funs.js";
 
 const DAYS_IN_YEAR = 250;
 const ALFA_95 = -1.645;
@@ -94,14 +104,19 @@ dbRef.child("data").get().then((snapshot) => {
         let portTable = new CentralTable(portHeader, "linked", "port", portAligns, "Portfolio");
         let recalculator = function(m) {
             if (m.length > 1) {
-                let c = getCols(lessHeader(m), [1]);
-                let c2 = math.round(math.multiply(c, 1 / math.sum(c)), 3);
-                m = math.subset(m, math.index(math.range(1, m.length), 2), c2);
+                //recalc weights
+                let money = getCols(m, 1, false);
+                let w = math.round(math.multiply(money, 1 / math.sum(money)), 3);
+                m = insertCols(m, w, 2);
                 
-//                let i = indexOf(tickers, getColAsArr(m, 0));
-//                let r = math.subset(m, math.index(math.range(1, m.length), 1));
-//                let var95 = math.round(contToSimp(math.add(er[cur], math.multiply(sigma[cur], ALFA_95))), ACCURACY);
-//                let var99 = math.round(contToSimp(math.add(er[cur], math.multiply(sigma[cur], ALFA_99))), ACCURACY);
+                //recalc vars
+                let i = getIndices(TICKERS, colToArr(getCols(m, 0, false)));
+                let sigma = getVals(SIGMA[cur], i);
+                let er = colToArr(getCols(m, 6, false));
+                let var95 = math.round(contToSimp(math.add(er, math.multiply(sigma, ALFA_95))), ACCURACY);
+                let var99 = math.round(contToSimp(math.add(er, math.multiply(sigma, ALFA_99))), ACCURACY);
+                m = insertCols(m, var95, 4);
+                m = insertCols(m, var99, 5);
             }
             return m;
         }; 
@@ -119,7 +134,7 @@ dbRef.child("data").get().then((snapshot) => {
                 s1 = math.sum(math.column(m, 1));
                 let w = math.column(m, 2);
                 s2 = math.round(math.sum(w), 1);
-                let i = indexOf(TICKERS, getColAsArr(m, 0));
+                let i = getIndices(TICKERS, colToArr(getCols(m, 0)));
                 let subcov = math.subset(COV[cur], math.index(i, i));
                 s3 = math.round(math.sum(math.sqrt(math.multiply(math.transpose(w), subcov, w))), ACCURACY);
                 s6 = math.round(math.sum(math.multiply(math.transpose(w), math.column(m, 6))), ACCURACY);
@@ -174,8 +189,7 @@ dbRef.child("data").get().then((snapshot) => {
         
         //changing currency
         let refreshTableCur = function(table, iTo) {
-            let jFrom = indexOf(TICKERS, getColAsArr(table.matrix, 0));
-            jFrom.shift();
+            let jFrom = getIndices(TICKERS, colToArr(getCols(table.matrix, 0, false)));
             if (jFrom.length > 0) {
                 let iFrom = [2, 3, 4, 5];
                 let jTo = math.range(1, table.matrix.length);

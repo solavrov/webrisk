@@ -1,8 +1,18 @@
 /* global math */
 
-export {indexOf, allIndices, getColAsArr, getRows, getCols, insert, contToSimp, lessHeader};
+export {
+    getIndices, 
+    allIndices, 
+    getRows, 
+    getCols, 
+    insert, 
+    contToSimp,
+    insertCols,
+    getVals,
+    colToArr
+};
 
-function indexOf(array, vals) {
+function getIndices(array, vals) {
     let indices = [];
     if (Array.isArray(vals)) {
         for (let v of vals) {
@@ -14,6 +24,13 @@ function indexOf(array, vals) {
     return indices;
 }
 
+function getVals(array, indices) {
+    let vals = [];
+    indices.forEach(i => vals.push(array[i]));
+    if (vals.length === 1) vals = vals[0];
+    return vals;
+}
+
 function allIndices(array, val) {
     let indices = [];
     for(let i = 0; i < array.length; i++)
@@ -22,15 +39,15 @@ function allIndices(array, val) {
     return indices;
 }
 
-//return column of matrix as one dimentional array
-function getColAsArr(matrix, indexOfCol) {
-    let c = math.column(matrix, indexOfCol);
-    if (matrix.length > 1) {
-        c = math.transpose(c)[0];
+function colToArr(col) {
+    if (Array.isArray(col)) {
+        var a = math.transpose(col)[0];
+    } else if (col === null) {
+        var a = [];
     } else {
-        c = [c];
+        var a = col;
     }
-    return c;
+    return a;
 }
 
 function getRows(matrix, indicesOfRows) {
@@ -38,21 +55,30 @@ function getRows(matrix, indicesOfRows) {
     return math.subset(matrix, math.index(indicesOfRows, math.range(0, n)));
 }
 
-function getCols(matrix, indicesOfCols) {
-    let m = math.size(matrix)[0];
-    return math.subset(matrix, math.index(math.range(0, m), indicesOfCols));
-}
-
-function lessHeader(matrix) {
-    let m = math.size(matrix)[0];
-    let n = math.size(matrix)[1];
-    return math.subset(matrix, math.index(math.range(1, m), math.range(0, n)));
+function getCols(matrix, indicesOfCols, takeHeader=true) {
+    let cols = null;
+    if (takeHeader || matrix.length > 1) {
+        let m = math.size(matrix)[0];
+        let h = 1;
+        if (takeHeader) h = 0;
+        cols = math.subset(matrix, math.index(math.range(h, m), indicesOfCols));
+    }
+    return cols;
 }
 
 //insert submatrix of first matrix into submatrix of second matrix
 function insert(matrixFrom, matrixTo, indicesFrom, indicesTo) {
     let matrixToInsert = math.subset(matrixFrom, indicesFrom);
     return math.subset(matrixTo, indicesTo, matrixToInsert);
+}
+
+function insertCols(matrix, cols, iTo) {
+    if (Array.isArray(cols)) {
+        var h = matrix.length - cols.length;
+    } else {
+        var h = matrix.length - 1;
+    }
+    return math.subset(matrix, math.index(math.range(h, matrix.length), iTo), cols);
 }
 
 function contToSimp(r) {
