@@ -19,6 +19,7 @@ const ALFA_95 = -1.645;
 const ALFA_99 = -2.326;
 const ACCURACY = 1;
 const CURRENCIES = ['rub', 'usd', 'eur'];
+const WIDE_SPACE = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
 
 // Web app's Firebase configuration
 const firebaseConfig = {
@@ -77,7 +78,7 @@ dbRef.child("data").get().then((snapshot) => {
         let cur = 'rub';
         
         //building asset tables
-        let assetHeader = ["Ticker", "________Name________", "Volatility", "VaR_95%", "VaR_99%", "Expected return"];
+        let assetHeader = ["Ticker", WIDE_SPACE + "Name" + WIDE_SPACE, "Volatility", "VaR_95%", "VaR_99%", "Expected return"];
         let assetAligns = ["center", "left", "right", "right", "right", "right", "right"];
         
         let stockUsTable = new SideTable(assetHeader, "us_stocks", "linked", assetAligns, "US Stocks");
