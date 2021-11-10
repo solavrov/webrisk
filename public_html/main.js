@@ -2,6 +2,7 @@
 
 import {SideTable} from "./SideTable.js";
 import {CentralTable} from "./CentralTable.js";
+import {Port} from "./Port.js";
 import {
     getIndices, 
     allIndices, 
@@ -49,6 +50,8 @@ let etfBox = document.getElementById("etfBox");
 let cryptoBox = document.getElementById("cryptoBox");
 let portBox = document.getElementById("portBox");
 let curPick = document.getElementsByName("curPick");
+let targetInput = document.getElementById("targetInput");
+let optButton = document.getElementById("optButton");
 
 dbRef.child("data").get().then((snapshot) => {
   
@@ -136,8 +139,8 @@ dbRef.child("data").get().then((snapshot) => {
                 let w = math.column(matrix, 2);
                 s2 = math.round(math.sum(w), 1);
                 let i = getIndices(TICKERS, colToArr(getCols(matrix, 0)));
-                let subcov = math.subset(COV[cur], math.index(i, i));
-                s3 = math.round(math.sum(math.sqrt(math.multiply(math.transpose(w), subcov, w))), ACCURACY);
+                let cov = math.subset(COV[cur], math.index(i, i));
+                s3 = math.round(math.sum(math.sqrt(math.multiply(math.transpose(w), cov, w))), ACCURACY);
                 s6 = math.round(math.sum(math.multiply(math.transpose(w), math.column(matrix, 6))), ACCURACY);
                 s4 = math.round(contToSimp(ALFA_95 * s3 + s6), ACCURACY);
                 s5 = math.round(contToSimp(ALFA_99 * s3 + s6), ACCURACY);
@@ -210,7 +213,25 @@ dbRef.child("data").get().then((snapshot) => {
             refreshTableCur(portTable, [3, 4, 5, 6]);
             portTable.refreshSummary();
         }));
-
+        
+        //optimizing
+        let optimize = function() {
+            let matrix = portTable.matrix.slice(0);
+            if (matrix.length > 1) {
+                matrix.shift();
+                let r = math.column(matrix, 6);
+                let i = getIndices(TICKERS, colToArr(getCols(matrix, 0)));
+                let cov = math.subset(COV[cur], math.index(i, i));
+                let rho = Number(targetInput.value);
+                let port = new Port(cov, r, rho);
+                port.optimize();
+                console.log(port.w);
+            }    
+        };
+        
+        optButton.addEventListener("click", optimize);
+        
+        
         
 
 
