@@ -102,26 +102,26 @@ dbRef.child("data").get().then((snapshot) => {
         let portHeader = ["Ticker", "Money", "Share", "Volatility", "VaR_95%", "VaR_99%", "Expected return"];
         let portAligns = ["center", "right", "right", "right", "right", "right", "right"];
         let portTable = new CentralTable(portHeader, "linked", "port", portAligns, "Portfolio");
-        let recalculator = function(m) {
-            if (m.length > 1) {
+        let recalculator = function(matrix) {
+            if (matrix.length > 1) {
                 //recalc weights
-                let money = getCols(m, 1, false);
+                let money = getCols(matrix, 1, false);
                 let w = math.round(math.multiply(money, 1 / math.sum(money)), 3);
-                m = insertCols(m, w, 2);
+                matrix = insertCols(matrix, w, 2);
                 
                 //recalc vars
-                let i = getIndices(TICKERS, colToArr(getCols(m, 0, false)));
+                let i = getIndices(TICKERS, colToArr(getCols(matrix, 0, false)));
                 let sigma = getVals(SIGMA[cur], i);
-                let er = colToArr(getCols(m, 6, false));
+                let er = colToArr(getCols(matrix, 6, false));
                 let var95 = math.round(contToSimp(math.add(er, math.multiply(sigma, ALFA_95))), ACCURACY);
                 let var99 = math.round(contToSimp(math.add(er, math.multiply(sigma, ALFA_99))), ACCURACY);
-                m = insertCols(m, var95, 4);
-                m = insertCols(m, var99, 5);
+                matrix = insertCols(matrix, var95, 4);
+                matrix = insertCols(matrix, var99, 5);
             }
-            return m;
+            return matrix;
         }; 
         portTable.addRecalculator(recalculator);
-        let summarizer = function(m) {
+        let summarizer = function(matrix) {
             //["Ticker", "Money", "Share", "Volatility", "VaR_95%", "VaR_99%", "Expected return"]
             let s1 = 0;
             let s2 = 0;
@@ -129,15 +129,15 @@ dbRef.child("data").get().then((snapshot) => {
             let s4 = 0;
             let s5 = 0;
             let s6 = 0;
-            if (m.length > 1) {
-                m.shift();
-                s1 = math.sum(math.column(m, 1));
-                let w = math.column(m, 2);
+            if (matrix.length > 1) {
+                matrix.shift();
+                s1 = math.sum(math.column(matrix, 1));
+                let w = math.column(matrix, 2);
                 s2 = math.round(math.sum(w), 1);
-                let i = getIndices(TICKERS, colToArr(getCols(m, 0)));
+                let i = getIndices(TICKERS, colToArr(getCols(matrix, 0)));
                 let subcov = math.subset(COV[cur], math.index(i, i));
                 s3 = math.round(math.sum(math.sqrt(math.multiply(math.transpose(w), subcov, w))), ACCURACY);
-                s6 = math.round(math.sum(math.multiply(math.transpose(w), math.column(m, 6))), ACCURACY);
+                s6 = math.round(math.sum(math.multiply(math.transpose(w), math.column(matrix, 6))), ACCURACY);
                 s4 = math.round(contToSimp(ALFA_95 * s3 + s6), ACCURACY);
                 s5 = math.round(contToSimp(ALFA_99 * s3 + s6), ACCURACY);
             }
