@@ -227,8 +227,16 @@ dbRef.child("data").get().then((snapshot) => {
                 let rho = Number(targetInput.value);
                 let port = new Port(cov, r, rho);
                 port.optimize();
-                console.log(port.w);
-            }    
+                
+                let w = math.round(math.multiply(port.w, 1000));
+                console.log(w);
+                
+                let indicesFrom = math.index(math.range(0, w.length), 0);
+                let indicesTo = math.index(math.range(1, w.length + 1), 1);
+                portTable.matrix = insert(w, portTable.matrix, indicesFrom, indicesTo);
+                portTable.recalculate();
+                portTable.refreshSummary();
+            }
         };
         
         optButton.addEventListener("click", optimize);
