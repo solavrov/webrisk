@@ -1,10 +1,11 @@
 export {SideTable};
 
 class SideTable {
-    constructor(headerArray, name, cssClass, aligns, caption="", actionSymbol="&#10010;", blankSymbol="&#9586;") {
+    constructor(headerArray, name, cssClass, aligns, accuracy=null, caption="", actionSymbol="&#10010;", blankSymbol="&#9586;") {
         this.matrix = [headerArray];
         this.name = name;
         this.aligns = aligns;
+        this.accuracy = accuracy;
         this.centerTable = null;
         this.adapter = null;
         this.rowHighlightColor = "#e0ebeb";
@@ -60,7 +61,11 @@ class SideTable {
         for (let i = 0; i < rowArray.length; i++) {
             cell = row.insertCell(i + 1);
             cell.style.textAlign = this.aligns[i];
-            cell.innerHTML = rowArray[i];
+            if (this.accuracy === null) {
+                cell.innerHTML = rowArray[i];
+            } else {
+                cell.innerHTML = Math.round(rowArray[i] * Math.pow(10, this.accuracy[i])) / Math.pow(10, this.accuracy[i]);
+            }
         }
         this.setRowListeners(row);
     }
