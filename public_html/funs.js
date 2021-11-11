@@ -9,7 +9,8 @@ export {
     contToSimp,
     insertCols,
     getVals,
-    colToArr
+    colToArr,
+    lessHeader
 };
 
 function getIndices(array, vals) {
@@ -83,6 +84,12 @@ function insertCols(matrix, cols, iTo) {
 
 function contToSimp(r) {
     return math.multiply(math.subtract(math.exp(math.divide(r, 100)), 1), 100);
+}
+
+function lessHeader(matrix) {
+    let mtx = matrix.slice(0);
+    mtx.shift();
+    return mtx;
 }
 
 //function getRowFromFB(rowSnapshot) {

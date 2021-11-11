@@ -138,7 +138,7 @@ dbRef.child("data").get().then((snapshot) => {
                 s1 = math.sum(math.column(matrix, 1));
                 let w = math.column(matrix, 2);
                 s2 = math.round(math.sum(w), 1);
-                let i = getIndices(TICKERS, colToArr(getCols(matrix, 0)));
+                let i = getIndices(TICKERS, colToArr(math.column(matrix, 0)));
                 let cov = math.subset(COV[cur], math.index(i, i));
                 s3 = math.round(math.sum(math.sqrt(math.multiply(math.transpose(w), cov, w))), ACCURACY);
                 s6 = math.round(math.sum(math.multiply(math.transpose(w), math.column(matrix, 6))), ACCURACY);
@@ -193,12 +193,14 @@ dbRef.child("data").get().then((snapshot) => {
         
         //changing currency
         let refreshTableCur = function(table, iTo) {
-            let jFrom = getIndices(TICKERS, colToArr(getCols(table.matrix, 0, false)));
-            if (jFrom.length > 0) {
-                let iFrom = [2, 3, 4, 5];
-                let jTo = math.range(1, table.matrix.length);
-                table.matrix = insert(ASSET_MATRICES[cur], table.matrix, math.index(jFrom, iFrom), math.index(jTo, iTo));
-                table.syncTableWithMatrix();
+            if (table.matrix.length > 1) {
+                let jFrom = getIndices(TICKERS, colToArr(getCols(table.matrix, 0, false)));
+                if (jFrom.length > 0) {
+                    let iFrom = [2, 3, 4, 5];
+                    let jTo = math.range(1, table.matrix.length);
+                    table.matrix = insert(ASSET_MATRICES[cur], table.matrix, math.index(jFrom, iFrom), math.index(jTo, iTo));
+                    table.syncTableWithMatrix();
+                }
             }
         };
 
@@ -220,7 +222,7 @@ dbRef.child("data").get().then((snapshot) => {
             if (matrix.length > 2) {
                 matrix.shift();
                 let r = math.column(matrix, 6);
-                let i = getIndices(TICKERS, colToArr(getCols(matrix, 0)));
+                let i = getIndices(TICKERS, colToArr(math.column(matrix, 0)));
                 let cov = math.subset(COV[cur], math.index(i, i));
                 let rho = Number(targetInput.value);
                 let port = new Port(cov, r, rho);
