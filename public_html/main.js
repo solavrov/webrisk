@@ -217,7 +217,7 @@ dbRef.child("data").get().then((snapshot) => {
         //optimizing
         let optimize = function() {
             let matrix = portTable.matrix.slice(0);
-            if (matrix.length > 1) {
+            if (matrix.length > 2) {
                 matrix.shift();
                 let r = math.column(matrix, 6);
                 let i = getIndices(TICKERS, colToArr(getCols(matrix, 0)));
