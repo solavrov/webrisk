@@ -12,7 +12,8 @@ import {
     contToSimp,
     insertCols,
     getVals,
-    colToArr
+    colToArr,
+    lessHeader
 } from "./funs.js";
 
 const DAYS_IN_YEAR = 250;
@@ -218,9 +219,8 @@ dbRef.child("data").get().then((snapshot) => {
         
         //optimizing
         let optimize = function() {
-            let matrix = portTable.matrix.slice(0);
-            if (matrix.length > 2) {
-                matrix.shift();
+            if (portTable.matrix.length > 2) {
+                let matrix = lessHeader(portTable.matrix);
                 let r = math.column(matrix, 6);
                 let i = getIndices(TICKERS, colToArr(math.column(matrix, 0)));
                 let cov = math.subset(COV[cur], math.index(i, i));
