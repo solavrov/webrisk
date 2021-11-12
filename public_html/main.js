@@ -84,7 +84,7 @@ dbRef.child("data").get().then((snapshot) => {
         let cur = 'rub';
         
         //building asset tables
-        let assetHeader = ["Ticker", WIDE_SPACE + "Name" + WIDE_SPACE, "Volatility", "VaR_95%", "VaR_99%", "Expected return"];
+        let assetHeader = ["Ticker", WIDE_SPACE + "Name" + WIDE_SPACE, "Volatility", "VaR_95", "VaR_99", "Expected return"];
         let assetAligns = ["center", "left", "right", "right", "right", "right", "right"];
         
         let stockUsTable = new SideTable(assetHeader, "us_stocks", "linked", assetAligns, "US Stocks");
@@ -106,7 +106,7 @@ dbRef.child("data").get().then((snapshot) => {
         cryptoTable.appendMatrix(getRows(ASSET_MATRICES[cur], allIndices(TYPES, "crypto")));
         
         //building port table
-        let portHeader = ["Ticker", "Money", "Share", "Volatility", "VaR_95%", "VaR_99%", "Expected return"];
+        let portHeader = ["Ticker", "Money", "Share", "Volatility", "VaR_95", "VaR_99", "Expected return"];
         let portAligns = ["center", "right", "right", "right", "right", "right", "right"];
         let portTable = new CentralTable(portHeader, "linked", "port", portAligns, "Portfolio");
         let recalculator = function(matrix) {
@@ -129,7 +129,6 @@ dbRef.child("data").get().then((snapshot) => {
         }; 
         portTable.addRecalculator(recalculator);
         let summarizer = function(matrix) {
-            //["Ticker", "Money", "Share", "Volatility", "VaR_95%", "VaR_99%", "Expected return"]
             let s1 = 0;
             let s2 = 0;
             let s3 = 0;
