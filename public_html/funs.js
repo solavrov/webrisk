@@ -10,7 +10,8 @@ export {
     insertCols,
     getVals,
     colToArr,
-    lessHeader
+    lessHeader,
+    roundWeights
 };
 
 function getIndices(array, vals) {
@@ -90,6 +91,19 @@ function lessHeader(matrix) {
     let mtx = matrix.slice(0);
     mtx.shift();
     return mtx;
+}
+
+//round weight making all w <= digit * 10^-pos equal zero
+function roundWeights(w, pos=3, digit=1) {
+    w = math.round(w, pos);
+    for (let i = 0; i < w.length; i++) {
+        w[i][0] *= (w[i][0] > math.pow(10, -pos) * digit);
+    }
+    let iMax = colToArr(w).indexOf(math.max(w));
+    let s = math.sum(w);
+    w[iMax][0] += (1 - s);
+    w = math.round(w, pos);
+    return w;
 }
 
 //function getRowFromFB(rowSnapshot) {

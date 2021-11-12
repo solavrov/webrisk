@@ -13,13 +13,15 @@ import {
     insertCols,
     getVals,
     colToArr,
-    lessHeader
+    lessHeader,
+    roundWeights
 } from "./funs.js";
 
 const DAYS_IN_YEAR = 250;
 const ALFA_95 = -1.645;
 const ALFA_99 = -2.326;
 const ACCURACY = 1;
+const ACCURACY_ER = 2;
 const CURRENCIES = ['rub', 'usd', 'eur'];
 const WIDE_SPACE = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
 
@@ -72,7 +74,7 @@ dbRef.child("data").get().then((snapshot) => {
         let VAR99 = {};
         let ASSET_MATRICES = {};
         for (let c of CURRENCIES) {
-            ER[c] = math.round(snapshot.child("er_" + c).val(), ACCURACY);
+            ER[c] = math.round(snapshot.child("er_" + c).val(), ACCURACY_ER);
             COV[c] = math.multiply(snapshot.child("cov_" + c).val(), DAYS_IN_YEAR);
             SIGMA[c] = math.round(math.sqrt(math.diag(COV[c])), ACCURACY);
             VAR95[c] = math.round(contToSimp(math.add(ER[c], math.multiply(SIGMA[c], ALFA_95))), ACCURACY);
@@ -142,7 +144,7 @@ dbRef.child("data").get().then((snapshot) => {
                 let i = getIndices(TICKERS, colToArr(math.column(matrix, 0)));
                 let cov = math.subset(COV[cur], math.index(i, i));
                 s3 = math.round(math.sum(math.sqrt(math.multiply(math.transpose(w), cov, w))), ACCURACY);
-                s6 = math.round(math.sum(math.multiply(math.transpose(w), math.column(matrix, 6))), ACCURACY);
+                s6 = math.round(math.sum(math.multiply(math.transpose(w), math.column(matrix, 6))), ACCURACY_ER);
                 s4 = math.round(contToSimp(ALFA_95 * s3 + s6), ACCURACY);
                 s5 = math.round(contToSimp(ALFA_99 * s3 + s6), ACCURACY);
             }
@@ -227,13 +229,10 @@ dbRef.child("data").get().then((snapshot) => {
                 let rho = Number(targetInput.value);
                 let port = new Port(cov, r, rho);
                 port.optimize();
-                
-                let w = math.round(math.multiply(port.w, 1000));
-                console.log(w);
-                
-                let indicesFrom = math.index(math.range(0, w.length), 0);
-                let indicesTo = math.index(math.range(1, w.length + 1), 1);
-                portTable.matrix = insert(w, portTable.matrix, indicesFrom, indicesTo);
+                let money = math.multiply(roundWeights(port.w, 3, 1), 1000);
+                let indicesFrom = math.index(math.range(0, money.length), 0);
+                let indicesTo = math.index(math.range(1, money.length + 1), 1);
+                portTable.matrix = insert(money, portTable.matrix, indicesFrom, indicesTo);
                 portTable.recalculate();
                 portTable.refreshSummary();
             }
