@@ -243,8 +243,10 @@ dbRef.child("data").get().then((snapshot) => {
         
         document.addEventListener("keydown", function(event) {
             if (event["keyCode"] === 13) {
-                targetInput.blur();
-                optimize();
+                if (document.activeElement === targetInput) {
+                    targetInput.blur();
+                    optimize();
+                }
             }
         });
         
