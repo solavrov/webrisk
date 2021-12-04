@@ -14,14 +14,17 @@ import {
     getVals,
     colToArr,
     lessHeader,
-    roundWeights
+    roundWeights,
+    makeSample,
+    calcCov
 } from "./funs.js";
 
 const DAYS_IN_YEAR = 250;
 const ALFA_95 = -1.645;
 const ALFA_99 = -2.326;
-const ACCURACY = 1;
+const ACCURACY = 2;
 const ACCURACY_ER = 2;
+const SAMPLE_SIZE = 1000;
 const CURRENCIES = ['rub', 'usd', 'eur'];
 const WIDE_SPACE = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
 
@@ -69,18 +72,43 @@ dbRef.child("data").get().then((snapshot) => {
         let NAMES = snapshot.child("names").val();
         let ER = {};
         let COV = {};
+        let ERCC = {};
+        let COVCC = {};
+        let SAMPLE = {};
         let SIGMA = {};
+        let SIGMACC = {};
         let VAR95 = {};
         let VAR99 = {};
         let ASSET_MATRICES = {};
         for (let c of CURRENCIES) {
             ER[c] = math.round(snapshot.child("er_" + c).val(), ACCURACY_ER);
-            COV[c] = math.multiply(snapshot.child("cov_" + c).val(), DAYS_IN_YEAR);
+            COV[c] = snapshot.child("cov_" + c).val();
+            ERCC[c] = math.round(snapshot.child("ercc_" + c).val(), ACCURACY_ER);
+            COVCC[c] = snapshot.child("covcc_" + c).val();
+            SAMPLE[c] = makeSample(COVCC[c], ERCC[c], SAMPLE_SIZE);
             SIGMA[c] = math.round(math.sqrt(math.diag(COV[c])), ACCURACY);
-            VAR95[c] = math.round(contToSimp(math.add(ER[c], math.multiply(SIGMA[c], ALFA_95))), ACCURACY);
-            VAR99[c] = math.round(contToSimp(math.add(ER[c], math.multiply(SIGMA[c], ALFA_99))), ACCURACY);
+            SIGMACC[c] = math.round(math.sqrt(math.diag(COVCC[c])), ACCURACY);
+            VAR95[c] = math.round(contToSimp(math.add(ERCC[c], math.multiply(SIGMACC[c], ALFA_95))), ACCURACY);
+            VAR99[c] = math.round(contToSimp(math.add(ERCC[c], math.multiply(SIGMACC[c], ALFA_99))), ACCURACY);
             ASSET_MATRICES[c] = math.transpose([TICKERS, NAMES, SIGMA[c], VAR95[c], VAR99[c], ER[c]]);
         }
+        
+//        console.log(VAR95['rub'][13]);
+//        console.log(math.quantileSeq(SAMPLE['rub'][13], 0.05));
+//        
+//        console.log(VAR99['rub'][13]);
+//        console.log(math.quantileSeq(SAMPLE['rub'][13], 0.01));
+    
+//        console.log(math.mean(SAMPLE['rub'], 1));
+//        console.log(ER['rub']);
+//        
+//        console.log(math.sqrt(math.variance(SAMPLE['rub'], 1)));
+//        console.log(SIGMA['rub']);
+//        
+//        console.log(COV['rub'][8][11]);
+//        console.log(calcCov(SAMPLE['rub'][8], SAMPLE['rub'][11]));
+        
+        
         let cur = 'rub';
         
         //building asset tables
