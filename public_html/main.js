@@ -169,7 +169,7 @@ dbRef.child("data").get().then((snapshot) => {
                 matrix = insertCols(matrix, sigma, 3);
             }
             return matrix;
-        }; 
+        };
         portTable.addRecalculator(recalculator);
         let summarizer = function(matrix) {
             let s1 = 0;
@@ -184,11 +184,22 @@ dbRef.child("data").get().then((snapshot) => {
                 let w = math.column(matrix, 2);
                 s2 = math.round(math.sum(w), 1);
                 let i = getIndices(TICKERS, colToArr(math.column(matrix, 0)));
-                let cov = math.subset(COV[cur], math.index(i, i));
-                s3 = math.round(math.sum(math.sqrt(math.multiply(math.transpose(w), cov, w))), ACCURACY);
+                let covcc = math.divide(math.subset(COVCC[cur], math.index(i, i)), 10000);
+                let er = math.divide(math.column(matrix, 6), 100);
+                let cov = 
+                        math.dotMultiply(
+                            math.subtract(math.exp(covcc), 1),
+                            math.multiply(math.add(1, er), math.transpose(math.add(1, er)))
+                        );
+                s3 = math.round(math.sum(math.multiply(math.sqrt(math.multiply(math.transpose(w), cov, w)), 100)), ACCURACY);
                 s6 = math.round(math.sum(math.multiply(math.transpose(w), math.column(matrix, 6))), ACCURACY_ER);
-                s4 = math.round(contToSimp(ALFA_95 * s3 + s6), ACCURACY);
-                s5 = math.round(contToSimp(ALFA_99 * s3 + s6), ACCURACY);
+                let sample = 
+                        math.multiply(
+                            math.transpose(w),
+                            math.subset(SAMPLE[cur], math.index(i, math.range(0, SAMPLE_SIZE)))
+                        )[0];
+                s4 = math.round(math.quantileSeq(sample, 0.05), ACCURACY);
+                s5 = math.round(math.quantileSeq(sample, 0.01), ACCURACY);
             }
             return ["TOTAL", s1, s2, s3, s4, s5, s6];
         };    
