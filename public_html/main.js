@@ -146,12 +146,27 @@ dbRef.child("data").get().then((snapshot) => {
                 
                 //recalc vars
                 let i = getIndices(TICKERS, colToArr(getCols(matrix, 0, false)));
-                let sigma = getVals(SIGMA[cur], i);
-                let er = colToArr(getCols(matrix, 6, false));
-                let var95 = math.round(contToSimp(math.add(er, math.multiply(sigma, ALFA_95))), ACCURACY);
-                let var99 = math.round(contToSimp(math.add(er, math.multiply(sigma, ALFA_99))), ACCURACY);
+                let er = math.divide(colToArr(getCols(matrix, 6, false)), 100);
+                let sigmacc = math.divide(getVals(SIGMACC[cur], i), 100);
+                let ercc = math.subtract(math.log(math.add(1, er)), math.divide(math.square(sigmacc), 2));
+                let var95 = math.round(contToSimp(math.multiply(math.add(ercc, math.multiply(sigmacc, ALFA_95)), 100)), ACCURACY);
+                let var99 = math.round(contToSimp(math.multiply(math.add(ercc, math.multiply(sigmacc, ALFA_99)), 100)), ACCURACY);
                 matrix = insertCols(matrix, var95, 4);
                 matrix = insertCols(matrix, var99, 5);
+                
+                //recalc vols
+                let sigma = 
+                        math.round(
+                            math.multiply(
+                                 math.dotMultiply(
+                                    math.sqrt(math.subtract(math.exp(math.square(sigmacc)), 1)), 
+                                    math.add(1, er)
+                                 ),
+                                 100
+                            ),
+                            ACCURACY
+                        );
+                matrix = insertCols(matrix, sigma, 3);
             }
             return matrix;
         }; 
