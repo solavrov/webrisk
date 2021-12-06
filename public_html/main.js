@@ -24,6 +24,7 @@ const ALFA_95 = -1.645;
 const ALFA_99 = -2.326;
 const ACCURACY = 2;
 const ACCURACY_ER = 2;
+const ACCURACY_SHARE = 3;
 const SAMPLE_SIZE = 1000;
 const CURRENCIES = ['rub', 'usd', 'eur'];
 const WIDE_SPACE = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
@@ -124,7 +125,7 @@ dbRef.child("data").get().then((snapshot) => {
             if (matrix.length > 1) {
                 //recalc weights
                 let money = getCols(matrix, 1, false);
-                let w = math.round(math.multiply(money, 1 / math.sum(money)), 3);
+                let w = math.round(math.multiply(money, 1 / math.sum(money)), ACCURACY_SHARE);
                 matrix = insertCols(matrix, w, 2);
                 
                 //recalc vars
@@ -159,8 +160,9 @@ dbRef.child("data").get().then((snapshot) => {
             if (matrix.length > 1) {
                 matrix.shift();
                 total[1] = math.sum(math.column(matrix, 1));
-                let w = math.column(matrix, 2);
-                total[2] = math.round(math.sum(w), 1);
+                let money = math.column(matrix, 1);
+                let w = math.multiply(money, 1 / math.sum(money));
+                total[2] = 1;
                 let i = getIndices(TICKERS, colToArr(math.column(matrix, 0)));
                 let covcc = math.divide(math.subset(COVCC[cur], math.index(i, i)), 10000);
                 let er = math.divide(math.column(matrix, 6), 100);
@@ -176,8 +178,10 @@ dbRef.child("data").get().then((snapshot) => {
                             math.transpose(w),
                             math.subset(SAMPLE[cur], math.index(i, math.range(0, SAMPLE_SIZE)))
                         )[0];
-                total[4] = math.round(math.quantileSeq(sample, 0.05), ACCURACY);
-                total[5] = math.round(math.quantileSeq(sample, 0.01), ACCURACY);
+//                total[4] = math.round(math.quantileSeq(sample, 0.05), ACCURACY);
+//                total[5] = math.round(math.quantileSeq(sample, 0.01), ACCURACY);
+                total[4] = 0;
+                total[5] = 0;
             } 
 //            else if (matrix.length === 2) {
 //                matrix.shift();
@@ -259,12 +263,19 @@ dbRef.child("data").get().then((snapshot) => {
         let optimize = function() {
             if (portTable.matrix.length > 2) {
                 let matrix = lessHeader(portTable.matrix);
-                let r = math.column(matrix, 6);
                 let i = getIndices(TICKERS, colToArr(math.column(matrix, 0)));
-                let cov = math.subset(COV[cur], math.index(i, i));
+                let covcc = math.divide(math.subset(COVCC[cur], math.index(i, i)), 10000);
+                let er = math.divide(math.column(matrix, 6), 100);
+                let cov = 
+                        math.dotMultiply(
+                            math.subtract(math.exp(covcc), 1),
+                            math.multiply(math.add(1, er), math.transpose(math.add(1, er)))
+                        );
+                er = math.multiply(er, 100);
+                cov = math.multiply(cov, 10000);
                 let rho = Number(targetInput.value);
                 if (!isNaN(rho)) {
-                    let port = new Port(cov, r, rho);
+                    let port = new Port(cov, er, rho);
                     port.optimize();
                     let money = math.multiply(roundWeights(port.w, 3, 1), 1000);
                     let indicesFrom = math.index(math.range(0, money.length), 0);
