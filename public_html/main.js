@@ -92,23 +92,6 @@ dbRef.child("data").get().then((snapshot) => {
             VAR99[c] = math.round(contToSimp(math.add(ERCC[c], math.multiply(SIGMACC[c], ALFA_99))), ACCURACY);
             ASSET_MATRICES[c] = math.transpose([TICKERS, NAMES, SIGMA[c], VAR95[c], VAR99[c], ER[c]]);
         }
-        
-//        console.log(VAR95['rub'][13]);
-//        console.log(math.quantileSeq(SAMPLE['rub'][13], 0.05));
-//        
-//        console.log(VAR99['rub'][13]);
-//        console.log(math.quantileSeq(SAMPLE['rub'][13], 0.01));
-    
-//        console.log(math.mean(SAMPLE['rub'], 1));
-//        console.log(ER['rub']);
-//        
-//        console.log(math.sqrt(math.variance(SAMPLE['rub'], 1)));
-//        console.log(SIGMA['rub']);
-//        
-//        console.log(COV['rub'][8][11]);
-//        console.log(calcCov(SAMPLE['rub'][8], SAMPLE['rub'][11]));
-        
-        
         let cur = 'rub';
         
         //building asset tables
@@ -172,17 +155,12 @@ dbRef.child("data").get().then((snapshot) => {
         };
         portTable.addRecalculator(recalculator);
         let summarizer = function(matrix) {
-            let s1 = 0;
-            let s2 = 0;
-            let s3 = 0;
-            let s4 = 0;
-            let s5 = 0;
-            let s6 = 0;
-            if (matrix.length > 1) {
+            let total = ["TOTAL", 0, 0, 0, 0, 0, 0];
+            if (matrix.length > 2) {
                 matrix.shift();
-                s1 = math.sum(math.column(matrix, 1));
+                total[1] = math.sum(math.column(matrix, 1));
                 let w = math.column(matrix, 2);
-                s2 = math.round(math.sum(w), 1);
+                total[2] = math.round(math.sum(w), 1);
                 let i = getIndices(TICKERS, colToArr(math.column(matrix, 0)));
                 let covcc = math.divide(math.subset(COVCC[cur], math.index(i, i)), 10000);
                 let er = math.divide(math.column(matrix, 6), 100);
@@ -191,17 +169,22 @@ dbRef.child("data").get().then((snapshot) => {
                             math.subtract(math.exp(covcc), 1),
                             math.multiply(math.add(1, er), math.transpose(math.add(1, er)))
                         );
-                s3 = math.round(math.sum(math.multiply(math.sqrt(math.multiply(math.transpose(w), cov, w)), 100)), ACCURACY);
-                s6 = math.round(math.sum(math.multiply(math.transpose(w), math.column(matrix, 6))), ACCURACY_ER);
+                total[3] = math.round(math.sum(math.multiply(math.sqrt(math.multiply(math.transpose(w), cov, w)), 100)), ACCURACY);
+                total[6] = math.round(math.sum(math.multiply(math.transpose(w), math.column(matrix, 6))), ACCURACY_ER);
                 let sample = 
                         math.multiply(
                             math.transpose(w),
                             math.subset(SAMPLE[cur], math.index(i, math.range(0, SAMPLE_SIZE)))
                         )[0];
-                s4 = math.round(math.quantileSeq(sample, 0.05), ACCURACY);
-                s5 = math.round(math.quantileSeq(sample, 0.01), ACCURACY);
+                total[4] = math.round(math.quantileSeq(sample, 0.05), ACCURACY);
+                total[5] = math.round(math.quantileSeq(sample, 0.01), ACCURACY);
+            } 
+            else if (matrix.length === 2) {
+                matrix.shift();
+                matrix[0][0] = "TOTAL";
+                total = matrix[0];
             }
-            return ["TOTAL", s1, s2, s3, s4, s5, s6];
+            return total;
         };    
         portTable.addSummary(summarizer);
         portTable.addInput(1);
