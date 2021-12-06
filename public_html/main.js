@@ -85,7 +85,7 @@ dbRef.child("data").get().then((snapshot) => {
             COV[c] = snapshot.child("cov_" + c).val();
             ERCC[c] = math.round(snapshot.child("ercc_" + c).val(), ACCURACY_ER);
             COVCC[c] = snapshot.child("covcc_" + c).val();
-            SAMPLE[c] = makeSample(COVCC[c], ERCC[c], SAMPLE_SIZE);
+            SAMPLE[c] = makeSample(COVCC[c], ERCC[c], SAMPLE_SIZE, false);
             SIGMA[c] = math.round(math.sqrt(math.diag(COV[c])), ACCURACY);
             SIGMACC[c] = math.round(math.sqrt(math.diag(COVCC[c])), ACCURACY);
             VAR95[c] = math.round(contToSimp(math.add(ERCC[c], math.multiply(SIGMACC[c], ALFA_95))), ACCURACY);
@@ -156,7 +156,7 @@ dbRef.child("data").get().then((snapshot) => {
         portTable.addRecalculator(recalculator);
         let summarizer = function(matrix) {
             let total = ["TOTAL", 0, 0, 0, 0, 0, 0];
-            if (matrix.length > 2) {
+            if (matrix.length > 1) {
                 matrix.shift();
                 total[1] = math.sum(math.column(matrix, 1));
                 let w = math.column(matrix, 2);
@@ -179,11 +179,11 @@ dbRef.child("data").get().then((snapshot) => {
                 total[4] = math.round(math.quantileSeq(sample, 0.05), ACCURACY);
                 total[5] = math.round(math.quantileSeq(sample, 0.01), ACCURACY);
             } 
-            else if (matrix.length === 2) {
-                matrix.shift();
-                matrix[0][0] = "TOTAL";
-                total = matrix[0];
-            }
+//            else if (matrix.length === 2) {
+//                matrix.shift();
+//                matrix[0][0] = "TOTAL";
+//                total = matrix[0];
+//            }
             return total;
         };    
         portTable.addSummary(summarizer);

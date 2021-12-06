@@ -146,37 +146,57 @@ function runif(n) {
     return r;
 }
 
-function rnorm(n) {
-    let u = runif(n);
-    let v = runif(n);
+function runif2(n) {
+  let m = 134456;
+  let a = 8121;
+  let c = 28411;
+  let r = 59949; //seed
+  let x = [];
+  let i = 0;
+  while (i < n) {
+    if (r > 0) {
+        x.push(r);
+        i++;
+    }
+    r = (a * r + c) % m;
+  }
+  return (math.divide(x, m));
+}
+
+function rnorm(n, isSeedRandom=true) {
+    var u, v;
+    if (isSeedRandom) {
+        u = runif(n);
+        v = runif(n);
+    } else {
+        let r = runif2(2*n);
+        u = r.slice(0, n);
+        v = r.slice(n, 2*n);
+    }
     let x = math.sqrt(math.multiply(-2, math.log(u)));
     let y = math.cos(math.multiply(2 * Math.PI, v));
     return math.dotMultiply(x, y);
 }
 
-function rnormMatrix(nrows, ncols) {
+function rnormMatrix(nrows, ncols, isSeedRandom=true) {
+    let r = rnorm(nrows * ncols, isSeedRandom);
     let mtx = [];
-    for (let j = 0; j < nrows; j++) mtx.push(rnorm(ncols));
+    for (let j = 0; j < nrows; j++) mtx.push(r.slice(j * ncols, (j+1) * ncols));
     return mtx;
 }
 
-function makeMtxFromArr(array, n) {
-    let arr = array.slice(0);
-    let mtx = [];
-    for (let i = 0; i < n; i++) mtx.push(arr);
-    return math.transpose(mtx);
-}
-
-function makeSample(covcc, ercc, n) {
+function makeSample(covcc, ercc, n, isSeedRandom=true) {
     let indexOfZero = math.diag(covcc).indexOf(0);
     let rfr = math.add(math.zeros([1, n])[0], ercc[indexOfZero]);
     let covcc2 = delCross(covcc, indexOfZero);
     let ercc2 = ercc.slice(0);
     ercc2.splice(indexOfZero, 1);
-    ercc2 = makeMtxFromArr(ercc2, n);
+    let ercc3 = [];
+    for (let i = 0; i < n; i++) ercc3.push(ercc2);
+    ercc3 = math.transpose(ercc3);
     let omega = chol(covcc2);
-    let x = rnormMatrix(covcc2.length, n);
-    let rcc = math.add(math.multiply(omega, x), ercc2);    
+    let x = rnormMatrix(covcc2.length, n, isSeedRandom);
+    let rcc = math.add(math.multiply(omega, x), ercc3);    
     rcc.splice(indexOfZero, 0, rfr);
     let r = math.multiply(math.subtract(math.exp(math.divide(rcc, 100)), 1), 100);
     return r;
