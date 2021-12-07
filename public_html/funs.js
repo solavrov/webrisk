@@ -13,7 +13,8 @@ export {
     lessHeader,
     roundWeights,
     makeSample,
-    calcCov
+    calcCov,
+    arrToMtx
 };
 
 function getIndices(array, vals) {
@@ -185,21 +186,43 @@ function rnormMatrix(nrows, ncols, isSeedRandom=true) {
     return mtx;
 }
 
-function makeSample(covcc, ercc, n, isSeedRandom=true) {
+// take array or number and return matrix with ncols columns of that array or number
+function arrToMtx(array, ncols) {
+    let mxt = [];
+    if(Array.isArray(array)) {
+        var arr = array.slice(0);
+    } else {
+        var arr = [array];
+    }
+    for (let i = 0; i < ncols; i++) mxt.push(arr);
+    return math.transpose(mxt);
+}
+
+//function makeSample(covcc, ercc, n, isSeedRandom=true) {
+//    let indexOfZero = math.diag(covcc).indexOf(0);
+//    let rfr = math.add(math.zeros([1, n])[0], ercc[indexOfZero]);
+//    let covcc2 = delCross(covcc, indexOfZero);
+//    let ercc2 = ercc.slice(0);
+//    ercc2.splice(indexOfZero, 1);
+//    let ercc3 = [];
+//    for (let i = 0; i < n; i++) ercc3.push(ercc2);
+//    ercc3 = math.transpose(ercc3);
+//    let omega = chol(covcc2);
+//    let x = rnormMatrix(covcc2.length, n, isSeedRandom);
+//    let rcc = math.add(math.multiply(omega, x), ercc3);    
+//    rcc.splice(indexOfZero, 0, rfr);
+//    let r = math.multiply(math.subtract(math.exp(math.divide(rcc, 100)), 1), 100);
+//    return r;
+//}
+
+function makeSample(covcc, n, isSeedRandom=true) {
     let indexOfZero = math.diag(covcc).indexOf(0);
-    let rfr = math.add(math.zeros([1, n])[0], ercc[indexOfZero]);
     let covcc2 = delCross(covcc, indexOfZero);
-    let ercc2 = ercc.slice(0);
-    ercc2.splice(indexOfZero, 1);
-    let ercc3 = [];
-    for (let i = 0; i < n; i++) ercc3.push(ercc2);
-    ercc3 = math.transpose(ercc3);
     let omega = chol(covcc2);
     let x = rnormMatrix(covcc2.length, n, isSeedRandom);
-    let rcc = math.add(math.multiply(omega, x), ercc3);    
-    rcc.splice(indexOfZero, 0, rfr);
-    let r = math.multiply(math.subtract(math.exp(math.divide(rcc, 100)), 1), 100);
-    return r;
+    x = math.multiply(omega, x);    
+    x.splice(indexOfZero, 0, math.zeros([1, n])[0]);
+    return math.exp(math.divide(x, 100));
 }
 
 function calcCov(x, y) {

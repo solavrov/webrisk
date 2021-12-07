@@ -16,7 +16,8 @@ import {
     lessHeader,
     roundWeights,
     makeSample,
-    calcCov
+    calcCov,
+    arrToMtx
 } from "./funs.js";
 
 const DAYS_IN_YEAR = 250;
@@ -86,7 +87,7 @@ dbRef.child("data").get().then((snapshot) => {
             COV[c] = snapshot.child("cov_" + c).val();
             ERCC[c] = math.round(snapshot.child("ercc_" + c).val(), ACCURACY_ER);
             COVCC[c] = snapshot.child("covcc_" + c).val();
-            SAMPLE[c] = makeSample(COVCC[c], ERCC[c], SAMPLE_SIZE, false);
+            SAMPLE[c] = makeSample(COVCC[c], SAMPLE_SIZE, false);
             SIGMA[c] = math.round(math.sqrt(math.diag(COV[c])), ACCURACY);
             SIGMACC[c] = math.round(math.sqrt(math.diag(COVCC[c])), ACCURACY);
             VAR95[c] = math.round(contToSimp(math.add(ERCC[c], math.multiply(SIGMACC[c], ALFA_95))), ACCURACY);
@@ -162,7 +163,7 @@ dbRef.child("data").get().then((snapshot) => {
                 total[1] = math.sum(math.column(matrix, 1));
                 let money = math.column(matrix, 1);
                 let w = math.multiply(money, 1 / math.sum(money));
-                total[2] = 1;
+                total[2] = math.round(math.sum(w), ACCURACY_SHARE);
                 let i = getIndices(TICKERS, colToArr(math.column(matrix, 0)));
                 let covcc = math.divide(math.subset(COVCC[cur], math.index(i, i)), 10000);
                 let er = math.divide(math.column(matrix, 6), 100);
@@ -173,15 +174,19 @@ dbRef.child("data").get().then((snapshot) => {
                         );
                 total[3] = math.round(math.sum(math.multiply(math.sqrt(math.multiply(math.transpose(w), cov, w)), 100)), ACCURACY);
                 total[6] = math.round(math.sum(math.multiply(math.transpose(w), math.column(matrix, 6))), ACCURACY_ER);
-                let sample = 
-                        math.multiply(
-                            math.transpose(w),
-                            math.subset(SAMPLE[cur], math.index(i, math.range(0, SAMPLE_SIZE)))
-                        )[0];
-//                total[4] = math.round(math.quantileSeq(sample, 0.05), ACCURACY);
-//                total[5] = math.round(math.quantileSeq(sample, 0.01), ACCURACY);
-                total[4] = 0;
-                total[5] = 0;
+                
+                let p = 
+                        math.dotMultiply(
+                            math.add(1, colToArr(er)),
+                            math.exp(math.divide(math.square(math.divide(getVals(SIGMACC[cur], i), 100)), -2))
+                        );
+                p = arrToMtx(p, SAMPLE_SIZE);
+                let sample = math.subset(SAMPLE[cur], math.index(i, math.range(0, SAMPLE_SIZE)));
+                sample = math.multiply(math.subtract(math.dotMultiply(sample, p), 1), 100);
+                sample = math.multiply(math.transpose(w), sample);
+                total[4] = math.round(math.quantileSeq(sample, 0.05), ACCURACY);
+                total[5] = math.round(math.quantileSeq(sample, 0.01), ACCURACY);
+                
             } 
 //            else if (matrix.length === 2) {
 //                matrix.shift();
@@ -277,6 +282,7 @@ dbRef.child("data").get().then((snapshot) => {
                 if (!isNaN(rho)) {
                     let port = new Port(cov, er, rho);
                     port.optimize();
+                    console.log(port.w);
                     let money = math.multiply(roundWeights(port.w, 3, 1), 1000);
                     let indicesFrom = math.index(math.range(0, money.length), 0);
                     let indicesTo = math.index(math.range(1, money.length + 1), 1);
