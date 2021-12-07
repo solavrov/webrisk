@@ -22,8 +22,13 @@ class Port {
         //w
         let r = math.transpose(this.r)[0];
         let w = new Array(this.n).fill(0);
-        w[r.indexOf(rMin)] = (rMax - this.rho) / (rMax - rMin);
-        w[r.indexOf(rMax)] = (this.rho - rMin) / (rMax - rMin);
+        if (rMax !== rMin) {
+            w[r.indexOf(rMin)] = (rMax - this.rho) / (rMax - rMin);
+            w[r.indexOf(rMax)] = (this.rho - rMin) / (rMax - rMin);
+        } else {
+            let sigma = math.diag(this.cov);
+            w[sigma.indexOf(math.min(sigma))] = 1;
+        }
         this.w = math.transpose([w]);
         
         //abEq
