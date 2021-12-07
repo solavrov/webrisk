@@ -282,7 +282,6 @@ dbRef.child("data").get().then((snapshot) => {
                 if (!isNaN(rho)) {
                     let port = new Port(cov, er, rho);
                     port.optimize();
-                    console.log(port.w);
                     let money = math.multiply(roundWeights(port.w, 3, 1), 1000);
                     let indicesFrom = math.index(math.range(0, money.length), 0);
                     let indicesTo = math.index(math.range(1, money.length + 1), 1);
