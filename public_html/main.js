@@ -23,9 +23,10 @@ import {
 const DAYS_IN_YEAR = 250;
 const ALFA_95 = -1.645;
 const ALFA_99 = -2.326;
-const ACCURACY = 2;
+const ACCURACY = 1;
 const ACCURACY_ER = 2;
 const ACCURACY_SHARE = 3;
+const ACCURACY_MC = 0;
 const SAMPLE_SIZE = 1000;
 const CURRENCIES = ['rub', 'usd', 'eur'];
 const WIDE_SPACE = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
@@ -87,7 +88,7 @@ dbRef.child("data").get().then((snapshot) => {
             COV[c] = snapshot.child("cov_" + c).val();
             ERCC[c] = math.round(snapshot.child("ercc_" + c).val(), ACCURACY_ER);
             COVCC[c] = snapshot.child("covcc_" + c).val();
-            SAMPLE[c] = makeSample(COVCC[c], SAMPLE_SIZE, true);
+            SAMPLE[c] = makeSample(COVCC[c], SAMPLE_SIZE, false);
             SIGMA[c] = math.round(math.sqrt(math.diag(COV[c])), ACCURACY);
             SIGMACC[c] = math.sqrt(math.diag(COVCC[c]));
             VAR95[c] = math.round(contToSimp(math.add(ERCC[c], math.multiply(SIGMACC[c], ALFA_95))), ACCURACY);
@@ -122,6 +123,7 @@ dbRef.child("data").get().then((snapshot) => {
         let portHeader = ["Ticker", "Money", "Share", "Volatility", "VaR_95", "VaR_99", "Expected return"];
         let portAligns = ["center", "right", "right", "right", "right", "right", "right"];
         let portTable = new CentralTable(portHeader, "linked", "port", portAligns, "Portfolio");
+        
         let recalculator = function(matrix) {
             if (matrix.length > 1) {
                 //recalc weights
@@ -156,6 +158,7 @@ dbRef.child("data").get().then((snapshot) => {
             return matrix;
         };
         portTable.addRecalculator(recalculator);
+        
         let summarizer = function(matrix) {
             let total = ["TOTAL", 0, 0, 0, 0, 0, 0];
             if (matrix.length > 1) {
@@ -184,8 +187,8 @@ dbRef.child("data").get().then((snapshot) => {
                 let sample = math.subset(SAMPLE[cur], math.index(i, math.range(0, SAMPLE_SIZE)));
                 sample = math.multiply(math.subtract(math.dotMultiply(sample, p), 1), 100);
                 sample = math.multiply(math.transpose(w), sample);
-                total[4] = math.round(math.quantileSeq(sample, 0.05), ACCURACY);
-                total[5] = math.round(math.quantileSeq(sample, 0.01), ACCURACY);
+                total[4] = "&#8776; " + math.round(math.quantileSeq(sample, 0.05), ACCURACY_MC);
+                total[5] = "&#8776; " + math.round(math.quantileSeq(sample, 0.01), ACCURACY_MC);
                 
             } 
 //            else if (matrix.length === 2) {
@@ -264,7 +267,7 @@ dbRef.child("data").get().then((snapshot) => {
             portTable.refreshSummary();
         }));
         
-        //optimizing
+        //optimizing        
         let optimize = function() {
             if (portTable.matrix.length > 2) {
                 let matrix = lessHeader(portTable.matrix);
@@ -293,7 +296,7 @@ dbRef.child("data").get().then((snapshot) => {
         };
         
         optButton.addEventListener("click", optimize);
-        
+
         document.addEventListener("keydown", function(event) {
             if (event["keyCode"] === 13) {
                 if (document.activeElement === targetInput) {
@@ -303,11 +306,11 @@ dbRef.child("data").get().then((snapshot) => {
             }
         });
         
-        targetInput.addEventListener("blur", function() {
-            optimize();
-        });
+//        targetInput.addEventListener("blur", function() {
+//            optimize();
+//        });
         
-      
+
         
         
 
