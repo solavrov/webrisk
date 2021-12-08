@@ -26,16 +26,21 @@ class Port {
             w[r.indexOf(rMin)] = (rMax - this.rho) / (rMax - rMin);
             w[r.indexOf(rMax)] = (this.rho - rMin) / (rMax - rMin);
         } else {
-            let sigma = math.diag(this.cov);
-            w[sigma.indexOf(math.min(sigma))] = 1;
+//            let sigma = math.diag(this.cov);
+//            w[sigma.indexOf(math.min(sigma))] = 1;
+            w[0] = 1;
         }
         this.w = math.transpose([w]);
         
         //abEq
         this.abEq = [];
         this.abEq.push(new Array(this.n + 1).fill(1));
-        r.push(this.rho);
-        this.abEq.push(r);
+        let k = [];
+        if (rMax !== rMin) {
+            r.push(this.rho);
+            this.abEq.push(r);
+            k = Port.whichNotZero(r);
+        }
         
         //abIneq
         let wLows = math.transpose([new Array(this.n).fill(0)]);
@@ -43,10 +48,22 @@ class Port {
         let id1 = math.multiply(-1, math.identity(this.n)._data);
         let id2 = math.identity(this.n)._data;
         this.abIneq = math.concat(math.concat(id1, wLows), math.concat(id2, wHighs), 0);
+        if (k.length === 1) {
+            this.abIneq.splice(k[0], 1);
+            this.abIneq.splice(k[0] + this.n - 1, 1);
+        }
         
         //act-inact
         this.abAct = this.abEq.slice(0);
         this.abInact = this.abIneq.slice(0);
+    }
+    
+    static whichNotZero(arr) {
+        let k = [];
+        for (let i = 0; i < arr.length; i++) {
+            if (arr[i] !== 0) k.push(i);
+        }
+        return k;
     }
     
     static getA(ab) {
