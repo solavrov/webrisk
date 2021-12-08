@@ -198,7 +198,8 @@ dbRef.child("data").get().then((snapshot) => {
 //            }
             return total;
         };    
-        portTable.addSummary(summarizer);
+        portTable.addSummary(summarizer, "sum");
+        
         portTable.addInput(1);
         portTable.addInput(6);
         
