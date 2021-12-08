@@ -291,6 +291,8 @@ dbRef.child("data").get().then((snapshot) => {
                     portTable.matrix = insert(money, portTable.matrix, indicesFrom, indicesTo);
                     portTable.recalculate();
                     portTable.refreshSummary();
+                } else {
+                    targetInput.value = "NaN";
                 }
             }
         };
