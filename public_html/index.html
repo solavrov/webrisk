@@ -18,7 +18,7 @@
                 width: 40px;
                 height: 40px;
                 animation: spin 1s linear infinite;
-                position: absolute;
+                position: fixed;
                 top: 0;
                 bottom: 0;
                 left: 0;
@@ -26,24 +26,12 @@
                 margin: auto;
             }
             
-            #thinker {
-                visibility: hidden;
-                border: 5px solid green;
-                border-radius: 50%;
-                border-top: 5px solid red;
-                border-bottom: 5px solid red;
-                width: 10px;
-                height: 10px;
-                animation: spin 1s linear infinite;
-                background-color: white;
-            }
-
             @keyframes spin {
                 100% {
                     transform: rotate(360deg);
                 }
             }
-
+            
             #updateInfo {
                 text-align: center;
             }
@@ -128,17 +116,9 @@
                 <td>
                     <button id="optButton">Optimize</button>
                 </td>
-                <td>
-                    <div id="thinker"></div>
-                </td>
-                
             </tr>
             
         </table>
-        
-        
-        
-        
         
         <br>
         

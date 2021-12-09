@@ -61,7 +61,6 @@ let portBox = document.getElementById("portBox");
 let curPick = document.getElementsByName("curPick");
 let targetInput = document.getElementById("targetInput");
 let optButton = document.getElementById("optButton");
-let thinker = document.getElementById("thinker");
 
 dbRef.child("data").get().then((snapshot) => {
   
@@ -286,9 +285,9 @@ dbRef.child("data").get().then((snapshot) => {
                 let rho = Number(targetInput.value);
                 if (!isNaN(rho)) {
                     let port = new Port(cov, er, rho);
-                    
-                    thinker.style.visibility = "visible";
-                    
+     
+                    loader.style.visibility = "visible";
+
                     window.setTimeout(function() {
                         port.optimize();
                         let money = math.multiply(roundWeights(port.w, 3, 1), 1000);
@@ -297,7 +296,7 @@ dbRef.child("data").get().then((snapshot) => {
                         portTable.matrix = insert(money, portTable.matrix, indicesFrom, indicesTo);
                         portTable.recalculate();
                         portTable.refreshSummary();
-                        thinker.style.visibility = "hidden";
+                        loader.style.visibility = "hidden";
                     }, 1);
                     
                 } else {
