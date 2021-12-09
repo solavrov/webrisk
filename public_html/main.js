@@ -61,6 +61,8 @@ let portBox = document.getElementById("portBox");
 let curPick = document.getElementsByName("curPick");
 let targetInput = document.getElementById("targetInput");
 let optButton = document.getElementById("optButton");
+let thinker = document.getElementById("thinker");
+thinker.style.visibility = "hidden";
 
 dbRef.child("data").get().then((snapshot) => {
   
@@ -285,13 +287,20 @@ dbRef.child("data").get().then((snapshot) => {
                 let rho = Number(targetInput.value);
                 if (!isNaN(rho)) {
                     let port = new Port(cov, er, rho);
-                    port.optimize();
-                    let money = math.multiply(roundWeights(port.w, 3, 1), 1000);
-                    let indicesFrom = math.index(math.range(0, money.length), 0);
-                    let indicesTo = math.index(math.range(1, money.length + 1), 1);
-                    portTable.matrix = insert(money, portTable.matrix, indicesFrom, indicesTo);
-                    portTable.recalculate();
-                    portTable.refreshSummary();
+                    
+                    thinker.style.visibility = "visible";
+                    
+                    window.setTimeout(function() {
+                        port.optimize();
+                        let money = math.multiply(roundWeights(port.w, 3, 1), 1000);
+                        let indicesFrom = math.index(math.range(0, money.length), 0);
+                        let indicesTo = math.index(math.range(1, money.length + 1), 1);
+                        portTable.matrix = insert(money, portTable.matrix, indicesFrom, indicesTo);
+                        portTable.recalculate();
+                        portTable.refreshSummary();
+                        thinker.style.visibility = "hidden";
+                    }, 1);
+                    
                 } else {
                     targetInput.value = "NaN";
                 }
