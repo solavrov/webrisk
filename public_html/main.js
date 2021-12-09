@@ -62,7 +62,6 @@ let curPick = document.getElementsByName("curPick");
 let targetInput = document.getElementById("targetInput");
 let optButton = document.getElementById("optButton");
 let thinker = document.getElementById("thinker");
-thinker.style.visibility = "hidden";
 
 dbRef.child("data").get().then((snapshot) => {
   
