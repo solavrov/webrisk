@@ -3,7 +3,7 @@ import {SideTable} from "./SideTable.js";
 export {CentralTable};
 
 class CentralTable extends SideTable {
-    constructor(headerArray, cssClassTable, cssClassInput, aligns, caption="", rowHighlightColor="#c2ffc2", actionSymbol="&#10006;", blankSymbol="&#9586;") {
+    constructor(headerArray, cssClassTable, cssClassInput, aligns, caption="", rowHighlightColor="#e0ffe0", actionSymbol="&#10006;", blankSymbol="&#9586;") {
         super(headerArray, "Center", cssClassTable, aligns, caption, rowHighlightColor, actionSymbol, blankSymbol);
         this.sideTables = {};
         this.adapters = {};

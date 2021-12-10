@@ -1,7 +1,7 @@
 export {SideTable};
 
 class SideTable {
-    constructor(headerArray, name, cssClass, aligns, caption="", rowHighlightColor="#c2ffc2", actionSymbol="&#10010;", blankSymbol="&#9586;") {
+    constructor(headerArray, name, cssClass, aligns, caption="", rowHighlightColor="#e0ffe0", actionSymbol="&#10010;", blankSymbol="&#9586;") {
         this.matrix = [headerArray];
         this.name = name;
         this.aligns = aligns;
