@@ -23,7 +23,7 @@ import {
 const DAYS_IN_YEAR = 250;
 const ALFA_95 = -1.645;
 const ALFA_99 = -2.326;
-const ACCURACY = 1;
+const ACCURACY = 2;
 const ACCURACY_ER = 2;
 const ACCURACY_SHARE = 3;
 const ACCURACY_MC = 0;
@@ -83,6 +83,7 @@ dbRef.child("data").get().then((snapshot) => {
         let VAR95 = {};
         let VAR99 = {};
         let ASSET_MATRICES = {};
+        let PORT_SAMPLE = [];
         for (let c of CURRENCIES) {
             ER[c] = math.round(snapshot.child("er_" + c).val(), ACCURACY_ER);
             COV[c] = snapshot.child("cov_" + c).val();
@@ -161,6 +162,7 @@ dbRef.child("data").get().then((snapshot) => {
         
         let summarizer = function(matrix) {
             let total = ["TOTAL", 0, 0, 0, 0, 0, 0];
+            PORT_SAMPLE = [];
             if (matrix.length > 1) {
                 matrix.shift();
                 total[1] = math.sum(math.column(matrix, 1));
@@ -184,11 +186,11 @@ dbRef.child("data").get().then((snapshot) => {
                             math.exp(math.divide(math.square(math.divide(getVals(SIGMACC[cur], i), 100)), -2))
                         );
                 p = arrToMtx(p, SAMPLE_SIZE);
-                let sample = math.subset(SAMPLE[cur], math.index(i, math.range(0, SAMPLE_SIZE)));
-                sample = math.multiply(math.subtract(math.dotMultiply(sample, p), 1), 100);
-                sample = math.multiply(math.transpose(w), sample);
-                total[4] = "&#8776; " + math.round(math.quantileSeq(sample, 0.05), ACCURACY_MC);
-                total[5] = "&#8776; " + math.round(math.quantileSeq(sample, 0.01), ACCURACY_MC);
+                PORT_SAMPLE = math.subset(SAMPLE[cur], math.index(i, math.range(0, SAMPLE_SIZE)));
+                PORT_SAMPLE = math.multiply(math.subtract(math.dotMultiply(PORT_SAMPLE, p), 1), 100);
+                PORT_SAMPLE = math.multiply(math.transpose(w), PORT_SAMPLE);
+                total[4] = "&#8776; " + math.round(math.quantileSeq(PORT_SAMPLE, 0.05), ACCURACY_MC);
+                total[5] = "&#8776; " + math.round(math.quantileSeq(PORT_SAMPLE, 0.01), ACCURACY_MC);
                 
             } 
 //            else if (matrix.length === 2) {
