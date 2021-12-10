@@ -3,8 +3,8 @@ import {SideTable} from "./SideTable.js";
 export {CentralTable};
 
 class CentralTable extends SideTable {
-    constructor(headerArray, cssClassTable, cssClassInput, aligns, caption="", actionSymbol="&#10006;", blankSymbol="&#9586;") {
-        super(headerArray, "Center", cssClassTable, aligns, caption, actionSymbol, blankSymbol);
+    constructor(headerArray, cssClassTable, cssClassInput, aligns, caption="", rowHighlightColor="#c2ffc2", actionSymbol="&#10006;", blankSymbol="&#9586;") {
+        super(headerArray, "Center", cssClassTable, aligns, caption, rowHighlightColor, actionSymbol, blankSymbol);
         this.sideTables = {};
         this.adapters = {};
         this.rowOwnerNames = [null];
