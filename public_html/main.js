@@ -161,6 +161,7 @@ dbRef.child("data").get().then((snapshot) => {
         portTable.addRecalculator(recalculator);
         
         let summarizer = function(matrix) {
+//            let t0 = Date.now();
             let total = ["TOTAL", 0, 0, 0, 0, 0, 0];
             PORT_SAMPLE = [];
             if (matrix.length > 1) {
@@ -179,7 +180,7 @@ dbRef.child("data").get().then((snapshot) => {
                         );
                 total[3] = math.round(math.sum(math.multiply(math.sqrt(math.multiply(math.transpose(w), cov, w)), 100)), ACCURACY);
                 total[6] = math.round(math.sum(math.multiply(math.transpose(w), math.column(matrix, 6))), ACCURACY_ER);
-                
+                //Monte Cralo VaR for Port
                 let p = 
                         math.dotMultiply(
                             math.add(1, colToArr(er)),
@@ -188,16 +189,12 @@ dbRef.child("data").get().then((snapshot) => {
                 p = arrToMtx(p, SAMPLE_SIZE);
                 PORT_SAMPLE = math.subset(SAMPLE[cur], math.index(i, math.range(0, SAMPLE_SIZE)));
                 PORT_SAMPLE = math.multiply(math.subtract(math.dotMultiply(PORT_SAMPLE, p), 1), 100);
-                PORT_SAMPLE = math.multiply(math.transpose(w), PORT_SAMPLE);
+                PORT_SAMPLE = math.multiply(math.transpose(w), PORT_SAMPLE)[0];
                 total[4] = "&#8776; " + math.round(math.quantileSeq(PORT_SAMPLE, 0.05), ACCURACY_MC);
                 total[5] = "&#8776; " + math.round(math.quantileSeq(PORT_SAMPLE, 0.01), ACCURACY_MC);
-                
-            } 
-//            else if (matrix.length === 2) {
-//                matrix.shift();
-//                matrix[0][0] = "TOTAL";
-//                total = matrix[0];
-//            }
+            }
+//            let t1 = Date.now();
+//            console.log(t1-t0);
             return total;
         };    
         portTable.addSummary(summarizer, "sum");
