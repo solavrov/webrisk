@@ -161,7 +161,6 @@ dbRef.child("data").get().then((snapshot) => {
         portTable.addRecalculator(recalculator);
         
         let summarizer = function(matrix) {
-//            let t0 = Date.now();
             let total = ["TOTAL", 0, 0, 0, 0, 0, 0];
             PORT_SAMPLE = [];
             if (matrix.length > 1) {
@@ -193,8 +192,6 @@ dbRef.child("data").get().then((snapshot) => {
                 total[4] = "&#8776; " + math.round(math.quantileSeq(PORT_SAMPLE, 0.05), ACCURACY_MC);
                 total[5] = "&#8776; " + math.round(math.quantileSeq(PORT_SAMPLE, 0.01), ACCURACY_MC);
             }
-//            let t1 = Date.now();
-//            console.log(t1-t0);
             return total;
         };    
         portTable.addSummary(summarizer, "sum");

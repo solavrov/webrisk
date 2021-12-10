@@ -26,8 +26,6 @@ class Port {
             w[r.indexOf(rMin)] = (rMax - this.rho) / (rMax - rMin);
             w[r.indexOf(rMax)] = (this.rho - rMin) / (rMax - rMin);
         } else {
-//            let sigma = math.diag(this.cov);
-//            w[sigma.indexOf(math.min(sigma))] = 1;
             w[0] = 1;
         }
         this.w = math.transpose([w]);
