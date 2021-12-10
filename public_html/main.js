@@ -194,7 +194,7 @@ dbRef.child("data").get().then((snapshot) => {
             }
             return total;
         };    
-        portTable.addSummary(summarizer, "sum");
+        portTable.addSummary(summarizer, "sum", ["black", "black", "black", "black", "red", "red", "green"]);
         
         portTable.addInput(1);
         portTable.addInput(6);

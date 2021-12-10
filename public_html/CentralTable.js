@@ -45,18 +45,19 @@ class CentralTable extends SideTable {
         }
     }
 
-    addSummary(summarizer, cssClassSum) {
+    addSummary(summarizer, cssClassSum=null, textColors=null) {
         this.summarizer = summarizer;
         let m = this.matrix.map((row) => [...row]);
         let sumRow = summarizer(m);
         let row = this.table.insertRow();
-        row.className = cssClassSum;
+        if (cssClassSum !== null) row.className = cssClassSum;
         let cell = row.insertCell(0);
         cell.innerHTML = "";
         for (let i = 0; i < sumRow.length; i++) {
             cell = row.insertCell(i + 1);
             cell.style.textAlign = this.aligns[i];
             cell.innerHTML = sumRow[i];
+            if (textColors !== null) cell.style.color = textColors[i];
         }
     }
 
