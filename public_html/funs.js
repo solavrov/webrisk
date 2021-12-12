@@ -198,23 +198,6 @@ function arrToMtx(array, ncols) {
     return math.transpose(mxt);
 }
 
-//function makeSample(covcc, ercc, n, isSeedRandom=true) {
-//    let indexOfZero = math.diag(covcc).indexOf(0);
-//    let rfr = math.add(math.zeros([1, n])[0], ercc[indexOfZero]);
-//    let covcc2 = delCross(covcc, indexOfZero);
-//    let ercc2 = ercc.slice(0);
-//    ercc2.splice(indexOfZero, 1);
-//    let ercc3 = [];
-//    for (let i = 0; i < n; i++) ercc3.push(ercc2);
-//    ercc3 = math.transpose(ercc3);
-//    let omega = chol(covcc2);
-//    let x = rnormMatrix(covcc2.length, n, isSeedRandom);
-//    let rcc = math.add(math.multiply(omega, x), ercc3);    
-//    rcc.splice(indexOfZero, 0, rfr);
-//    let r = math.multiply(math.subtract(math.exp(math.divide(rcc, 100)), 1), 100);
-//    return r;
-//}
-
 function makeSample(covcc, n, isSeedRandom=true) {
     let indexOfZero = math.diag(covcc).indexOf(0);
     let covcc2 = delCross(covcc, indexOfZero);
@@ -233,38 +216,3 @@ function calcCov(x, y) {
     return (c / (x.length - 1));
 }
 
-//function getRowFromFB(rowSnapshot) {
-//    let x = [];
-//    rowSnapshot.forEach((item) => {
-//            x.push(item.val());
-//        }
-//    );
-//    return (x);
-//}
-//
-//function getMatrixFromFB(matrixSnapshot) {
-//    let m = [];
-//    matrixSnapshot.forEach((rowSnapshot) => {
-//            m.push(getRowFromFB(rowSnapshot));
-//        }
-//    );
-//    return (m);
-//}
-
-// function removeItem(array, item) {
-//     return (array.filter((e) => {return (e!==item);}));
-// }
-//
-// function buildTable(matrix) {
-//     let table = document.createElement("table");
-//     table["border"] = 1;
-//     let nRows = matrix.length;
-//     let nCols = matrix[0].length;
-//     for (let j = 0; j < nRows; j++) {
-//         let row = table.insertRow(j);
-//         for (let i = 0; i < nCols; i++) {
-//             row.insertCell(i).innerHTML = matrix[j][i];
-//         }
-//     }
-//     return (table);
-// }
