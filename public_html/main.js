@@ -1,4 +1,4 @@
-/* global firebase, math */
+/* global firebase, math, google */
 
 import {SideTable} from "./SideTable.js";
 import {CentralTable} from "./CentralTable.js";
@@ -17,7 +17,8 @@ import {
     roundWeights,
     makeSample,
     calcCov,
-    arrToMtx
+    arrToMtx,
+    makeHistogramData
 } from "./funs.js";
 
 const DAYS_IN_YEAR = 250;
@@ -31,7 +32,10 @@ const SAMPLE_SIZE = 1000;
 const CURRENCIES = ['rub', 'usd', 'eur'];
 const WIDE_SPACE = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
 
-// Web app's Firebase configuration
+// -----------------Loading google charts------------------------
+google.charts.load('current', {'packages':['corechart'], 'language':'en'});
+
+// ---------------Web app's Firebase configuration---------------
 const firebaseConfig = {
     apiKey: "AIzaSyDA2rvK4pmbmstno1_ixUsM954Z9xSIa0E",
     authDomain: "risk-ffdb5.firebaseapp.com",
@@ -42,12 +46,13 @@ const firebaseConfig = {
     appId: "1:845497685508:web:4b6d56013c72ec89188751",
     measurementId: "G-KE20BBK7DT"
 };
-// Initialize Firebase
+// --------------Initialize Firebase---------------
 firebase.initializeApp(firebaseConfig);
 //firebase.analytics();
-// Get database reference
+// ---------------Get database reference-----------------
 const dbRef = firebase.database().ref();
 
+// ---------------Html elements-------------------
 let body  = document.getElementById("body");
 let loader = document.getElementById("loader");
 let updateInfo  = document.getElementById("updateInfo");
@@ -61,14 +66,16 @@ let portBox = document.getElementById("portBox");
 let curPick = document.getElementsByName("curPick");
 let targetInput = document.getElementById("targetInput");
 let optButton = document.getElementById("optButton");
+let distChart = document.getElementById("distChart");
 
+// ------------------Main-------------------------
 dbRef.child("data").get().then((snapshot) => {
   
     if (snapshot.exists()) {
         loader.style.visibility = "hidden";
         body.style.visibility = "visible";
 
-        //getting data
+        //--------------getting data--------------
         updateInfo.innerHTML = "<b>Last update:</b> " + snapshot.child("refresh_time").val();
         let TICKERS = snapshot.child("tickers").val();
         let TYPES = snapshot.child("types").val();
@@ -98,7 +105,7 @@ dbRef.child("data").get().then((snapshot) => {
         }
         let cur = 'rub';
         
-        //building asset tables
+        //-----------------building asset tables-------------------
         let assetHeader = ["Ticker", WIDE_SPACE + "Name" + WIDE_SPACE, "Volatility", "VaR_95", "VaR_99", "Expected return"];
         let assetAligns = ["center", "left", "right", "right", "right", "right", "right"];
         
@@ -120,19 +127,20 @@ dbRef.child("data").get().then((snapshot) => {
         let cryptoTable = new SideTable(assetHeader, "crypto", "linked", assetAligns, "Crypto");
         cryptoTable.appendMatrix(getRows(ASSET_MATRICES[cur], allIndices(TYPES, "crypto")));
         
-        //building port table
+        //-----------------building port table------------------
         let portHeader = ["Ticker", "Money", "Share", "Volatility", "VaR_95", "VaR_99", "Expected return"];
         let portAligns = ["center", "right", "right", "right", "right", "right", "right"];
         let portTable = new CentralTable(portHeader, "linked", "port", portAligns, "Portfolio");
         
+        //-----------------recalculator-----------------------
         let recalculator = function(matrix) {
             if (matrix.length > 1) {
-                //recalc weights
+                //----------------recalc weights-----------------
                 let money = getCols(matrix, 1, false);
                 let w = math.round(math.multiply(money, 1 / math.sum(money)), ACCURACY_SHARE);
                 matrix = insertCols(matrix, w, 2);
                 
-                //recalc vars
+                //------------------recalc vars-------------------
                 let i = getIndices(TICKERS, colToArr(getCols(matrix, 0, false)));
                 let er = math.divide(colToArr(getCols(matrix, 6, false)), 100);
                 let sigmacc = math.divide(getVals(SIGMACC[cur], i), 100);
@@ -142,7 +150,7 @@ dbRef.child("data").get().then((snapshot) => {
                 matrix = insertCols(matrix, var95, 4);
                 matrix = insertCols(matrix, var99, 5);
                 
-                //recalc vols
+                //---------------------recalc vols-------------------
                 let sigma = 
                         math.round(
                             math.multiply(
@@ -160,6 +168,7 @@ dbRef.child("data").get().then((snapshot) => {
         };
         portTable.addRecalculator(recalculator);
         
+        //-----------------summarizer--------------------
         let summarizer = function(matrix) {
             let total = ["TOTAL", 0, 0, 0, 0, 0, 0];
             PORT_SAMPLE = [];
@@ -192,14 +201,18 @@ dbRef.child("data").get().then((snapshot) => {
                 total[4] = "&#8776; " + math.round(math.quantileSeq(PORT_SAMPLE, 0.05), ACCURACY_MC);
                 total[5] = "&#8776; " + math.round(math.quantileSeq(PORT_SAMPLE, 0.01), ACCURACY_MC);
             }
+            
+            document.dispatchEvent(new Event("summarized"));
+            
             return total;
         };    
         portTable.addSummary(summarizer, "sum", ["black", "black", "black", "black", "red", "red", "green"]);
         
+        //-------------------adding inputs to port--------------------
         portTable.addInput(1);
         portTable.addInput(6);
         
-        //linking tables
+        //------------------linking tables-----------------------
         let assetToPort = function(row) {
             let r = [];
             r.push(row[0]);
@@ -230,7 +243,7 @@ dbRef.child("data").get().then((snapshot) => {
         portTable.link(etfTable, portToAsset, assetToPort);
         portTable.link(cryptoTable, portToAsset, assetToPort);
         
-        //appending tables to html
+        //------------------appending tables to html--------------------
         stockUsBox.appendChild(stockUsTable.table);
         stockRuBox.appendChild(stockRuTable.table);
         bondBox.appendChild(bondTable.table);
@@ -239,7 +252,7 @@ dbRef.child("data").get().then((snapshot) => {
         cryptoBox.appendChild(cryptoTable.table);
         portBox.appendChild(portTable.table);
         
-        //changing currency
+        //-------------------changing currency----------------------
         let refreshTableCur = function(table, iTo) {
             if (table.matrix.length > 1) {
                 let jFrom = getIndices(TICKERS, colToArr(getCols(table.matrix, 0, false)));
@@ -264,7 +277,7 @@ dbRef.child("data").get().then((snapshot) => {
             portTable.refreshSummary();
         }));
         
-        //optimizing        
+        //----------------------optimizing---------------------------       
         let optimize = function() {
             if (portTable.matrix.length > 2) {
                 let matrix = lessHeader(portTable.matrix);
@@ -318,6 +331,53 @@ dbRef.child("data").get().then((snapshot) => {
         
 
         
+        //---------------ditribution chart--------------------
+        google.charts.setOnLoadCallback(initDist);
+
+        function initDist() {
+
+            let options = {
+
+                title: 'Distribution of returns',
+                
+                legend: { position: 'none' },
+                width: 600,
+                height: 400,
+
+                chartArea: { width: 500 },
+
+                animation: {
+                    duration: 300,
+                    startup: true
+                },
+
+                bar: { 
+                   groupWidth: '100%'
+                },
+
+                hAxis: {
+                    baselineColor: 'none'
+                }
+
+            };
+
+            let chart = new google.visualization.ColumnChart(distChart);
+
+            function draw() {
+                let data = makeHistogramData(PORT_SAMPLE, -100, 200, 5);   
+                let dataTable = new google.visualization.DataTable();
+                dataTable.addColumn('number', 'x');
+                dataTable.addColumn('number', 'y');
+                dataTable.addColumn({type: 'string', role: 'tooltip'});
+                dataTable.addRows(data);
+                chart.draw(dataTable, options);
+            }
+
+            draw();
+            
+            document.addEventListener("summarized", draw);
+
+        }
         
 
 
