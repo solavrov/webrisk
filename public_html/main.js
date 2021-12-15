@@ -337,19 +337,10 @@ dbRef.child("data").get().then((snapshot) => {
         function initDist() {
 
             let options = {
-                
-//                title: "Distribution of returns",
-//                titlePosition: "out",
-//                titleTextStyle: {
-//                    fontName: "Tahoma, sans-serif",
-//                    fontSize: 16,
-//                    bold: false,
-//                    italic: false
-//                },
-                
+               
                 legend: { position: 'none' },
                 width: 600,
-                height: 350,
+                height: 360,
 
                 chartArea: {width: 500, height: 300},
                 
@@ -363,7 +354,18 @@ dbRef.child("data").get().then((snapshot) => {
                 },
 
                 hAxis: {
-                    baselineColor: 'none'
+                    title: 'returns',
+                    baselineColor: 'none',
+                    titleTextStyle: {
+                        italic: false
+                    }
+                },
+                
+                vAxis: {
+                    title: 'outcomes',
+                    titleTextStyle: {
+                        italic: false
+                    }
                 }
 
             };
@@ -375,11 +377,12 @@ dbRef.child("data").get().then((snapshot) => {
             title.innerHTML = 'Distribution of returns';
 
             function draw() {
-                let data = makeHistogramData(PORT_SAMPLE, -100, 200, 5);   
+                let data = makeHistogramData(PORT_SAMPLE, -100, 200, 5);
                 let dataTable = new google.visualization.DataTable();
                 dataTable.addColumn('number', 'x');
                 dataTable.addColumn('number', 'y');
                 dataTable.addColumn({type: 'string', role: 'tooltip'});
+                dataTable.addColumn({type: 'string', role: 'style'});
                 dataTable.addRows(data);
                 chart.draw(dataTable, options);
             }
