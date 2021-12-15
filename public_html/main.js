@@ -53,20 +53,20 @@ firebase.initializeApp(firebaseConfig);
 const dbRef = firebase.database().ref();
 
 // ---------------Html elements-------------------
-let body  = document.getElementById("body");
-let loader = document.getElementById("loader");
-let updateInfo  = document.getElementById("updateInfo");
-let stockUsBox = document.getElementById("stockUsBox");
-let stockRuBox = document.getElementById("stockRuBox");
-let bondBox = document.getElementById("bondBox");
-let commodityBox = document.getElementById("commodityBox");
-let etfBox = document.getElementById("etfBox");
-let cryptoBox = document.getElementById("cryptoBox");
-let portBox = document.getElementById("portBox");
-let curPick = document.getElementsByName("curPick");
-let targetInput = document.getElementById("targetInput");
-let optButton = document.getElementById("optButton");
-let distChart = document.getElementById("distChart");
+const body  = document.getElementById("body");
+const loader = document.getElementById("loader");
+const updateInfo  = document.getElementById("updateInfo");
+const stockUsBox = document.getElementById("stockUsBox");
+const stockRuBox = document.getElementById("stockRuBox");
+const bondBox = document.getElementById("bondBox");
+const commodityBox = document.getElementById("commodityBox");
+const etfBox = document.getElementById("etfBox");
+const cryptoBox = document.getElementById("cryptoBox");
+const portBox = document.getElementById("portBox");
+const curPick = document.getElementsByName("curPick");
+const targetInput = document.getElementById("targetInput");
+const optButton = document.getElementById("optButton");
+const distChart = document.getElementById("distChart");
 
 // ------------------Main-------------------------
 dbRef.child("data").get().then((snapshot) => {
@@ -337,15 +337,22 @@ dbRef.child("data").get().then((snapshot) => {
         function initDist() {
 
             let options = {
-
-                title: 'Distribution of returns',
+                
+//                title: "Distribution of returns",
+//                titlePosition: "out",
+//                titleTextStyle: {
+//                    fontName: "Tahoma, sans-serif",
+//                    fontSize: 16,
+//                    bold: false,
+//                    italic: false
+//                },
                 
                 legend: { position: 'none' },
                 width: 600,
-                height: 400,
+                height: 350,
 
-                chartArea: { width: 500 },
-
+                chartArea: {width: 500, height: 300},
+                
                 animation: {
                     duration: 300,
                     startup: true
@@ -362,6 +369,10 @@ dbRef.child("data").get().then((snapshot) => {
             };
 
             let chart = new google.visualization.ColumnChart(distChart);
+            
+            const title = document.createElement('div');
+            title.className = 'distChartTitle';
+            title.innerHTML = 'Distribution of returns';
 
             function draw() {
                 let data = makeHistogramData(PORT_SAMPLE, -100, 200, 5);   
@@ -374,6 +385,7 @@ dbRef.child("data").get().then((snapshot) => {
             }
 
             draw();
+            distChart.childNodes[0].childNodes[0].append(title);
             
             document.addEventListener("summarized", draw);
 
