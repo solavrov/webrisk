@@ -26,6 +26,18 @@
                 margin: auto;
             }
             
+             #thinker {
+                visibility: hidden;
+                border: 5px solid green;
+                border-radius: 50%;
+                border-top: 5px solid red;
+                border-bottom: 5px solid red;
+                width: 10px;
+                height: 10px;
+                animation: spin 1s linear infinite;
+                background-color: white;
+            }
+            
             @keyframes spin {
                 100% {
                     transform: rotate(360deg);
@@ -141,6 +153,9 @@
                 </td>
                 <td>
                     <button id="optButton">Optimize</button>
+                </td>
+                <td>
+                    <div id="thinker"></div>
                 </td>
             </tr>
             

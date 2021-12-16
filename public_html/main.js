@@ -67,6 +67,7 @@ const curPick = document.getElementsByName("curPick");
 const targetInput = document.getElementById("targetInput");
 const optButton = document.getElementById("optButton");
 const distChart = document.getElementById("distChart");
+const thinker = document.getElementById("thinker");
 
 // ------------------Main-------------------------
 dbRef.child("data").get().then((snapshot) => {
@@ -295,7 +296,7 @@ dbRef.child("data").get().then((snapshot) => {
                 if (!isNaN(rho)) {
                     let port = new Port(cov, er, rho);
      
-                    loader.style.visibility = "visible";
+                    thinker.style.visibility = "visible";
 
                     window.setTimeout(function() {
                         port.optimize();
@@ -305,7 +306,7 @@ dbRef.child("data").get().then((snapshot) => {
                         portTable.matrix = insert(money, portTable.matrix, indicesFrom, indicesTo);
                         portTable.recalculate();
                         portTable.refreshSummary();
-                        loader.style.visibility = "hidden";
+                        thinker.style.visibility = "hidden";
                     }, 1);
                     
                 } else {
