@@ -297,7 +297,8 @@ dbRef.child("data").get().then((snapshot) => {
                 let rho = Number(targetInput.value);
                 if (!isNaN(rho)) {
                     let port = new Port(cov, er, rho);
-     
+                    
+                    optButton.disabled = true;
                     thinker.style.visibility = "visible";
 
                     window.setTimeout(function() {
@@ -309,6 +310,7 @@ dbRef.child("data").get().then((snapshot) => {
                         portTable.recalculate();
                         portTable.refreshSummary();
                         thinker.style.visibility = "hidden";
+                        optButton.disabled = false;
                     }, 1);
                     
                 } else {
@@ -399,6 +401,7 @@ dbRef.child("data").get().then((snapshot) => {
         
         //-----------------new sample----------------
         resampButton.addEventListener("click", function() {
+            resampButton.disabled = true;
             thinker2.style.visibility = "visible";
             window.setTimeout(function() {
                 for (let c of CURRENCIES) {
@@ -406,6 +409,7 @@ dbRef.child("data").get().then((snapshot) => {
             };
             portTable.refreshSummary();
             thinker2.style.visibility = "hidden";
+            resampButton.disabled = false;
             }, 1);
         });
         
