@@ -475,18 +475,29 @@ dbRef.child("data").get().then((snapshot) => {
                     let qcc5 = math.log(1 + math.quantileSeq(PORT_SAMPLE, 0.05) / 100);
                     let qcc95 = math.log(1 + math.quantileSeq(PORT_SAMPLE, 0.95) / 100);
                     
-                    let i = getIndices(TICKERS, colToArr(math.column(matrix, 0)));                    
-                    let ercc = math.divide(math.subset(ERCC[cur], math.index(i)), 100);
+                    let indices = getIndices(TICKERS, colToArr(math.column(matrix, 0)));                    
+                    let ercc = math.divide(math.subset(ERCC[cur], math.index(indices)), 100);
 
                     if (!Array.isArray(ercc)) ercc = [ercc];
                     let erccAvg = math.multiply([ercc], w)[0][0];
                     
-                    d = math.transpose([
+                    d = math.round([
                         tPoints,
                         getPortErForTimes(er, w,  DAYS_IN_YEAR, tPoints),
                         getQForTimes(qcc5, erccAvg, DAYS_IN_YEAR, tPoints),
                         getQForTimes(qcc95, erccAvg, DAYS_IN_YEAR, tPoints)
-                    ]);
+                    ], ACCURACY_ER);
+                    
+                    let tips = [];
+                    for (let i = 0; i < tPoints.length; i++) {
+                        tips.push("expected return " + d[1][i] + "\n90% in [" + d[2][i] + ", " + d[3][i] + "]");
+                    }
+                    
+                    d.push(tips);
+                    
+                    d = math.transpose(d);
+                    
+                    
                 }
 
                 let data = new google.visualization.DataTable();
@@ -494,6 +505,7 @@ dbRef.child("data").get().then((snapshot) => {
                 data.addColumn('number', 'mean');
                 data.addColumn({type:'number', role:'interval'});
                 data.addColumn({type:'number', role:'interval'});
+                data.addColumn({type: 'string', role: 'tooltip'});
                 data.addRows(d);
                 chart.draw(data, options0);
             }
