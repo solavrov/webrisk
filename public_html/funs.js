@@ -15,7 +15,9 @@ export {
     makeSample,
     calcCov,
     arrToMtx,
-    makeHistogramData
+    makeHistogramData,
+    getPortErForTimes,
+    getQForTimes
 };
 
 function getIndices(array, vals) {
@@ -238,3 +240,27 @@ function makeHistogramData(array, min_val, max_val, step) {
     return hist;
 }
 
+function getPortErForTimes(erColBase, wCol, tBase, timeArr) {
+    if (!Array.isArray(erColBase)) {
+        erColBase = [[erColBase]];
+        wCol = [[wCol]];
+    }
+    let erArr = math.transpose(erColBase)[0];
+    let erMtx = [];
+    timeArr.forEach(() => {erMtx.push(erArr);});
+    erMtx = math.transpose(erMtx);
+    let timeMtx = [];
+    let timeArr2 = math.divide(timeArr, tBase);
+    erColBase.forEach(() => {timeMtx.push(timeArr2);});
+    let wRow = math.transpose(wCol);
+    let r = math.add(math.multiply(wRow, math.dotPow(math.add(1, erMtx), timeMtx)), -1);
+    r = math.multiply(r[0], 100);
+    return r;
+}
+
+function getQForTimes(qccBase, erccBase, tBase, timeArr) {
+    let a = erccBase / tBase;
+    let b = (qccBase - erccBase) / math.sqrt(tBase);
+    let c = math.add(math.multiply(a, timeArr), math.multiply(b, math.sqrt(timeArr)));
+    return math.multiply(math.add(math.exp(c), -1), 100);
+}

@@ -18,7 +18,9 @@ import {
     makeSample,
     calcCov,
     arrToMtx,
-    makeHistogramData
+    makeHistogramData,
+    getPortErForTimes,
+    getQForTimes
 } from "./funs.js";
 
 const DAYS_IN_YEAR = 250;
@@ -67,6 +69,7 @@ const curPick = document.getElementsByName("curPick");
 const targetInput = document.getElementById("targetInput");
 const optButton = document.getElementById("optButton");
 const distChart = document.getElementById("distChart");
+const pathChart = document.getElementById("pathChart");
 const thinker = document.getElementById("thinker");
 const resampButton = document.getElementById("resampButton");
 const thinker2 = document.getElementById("thinker2");
@@ -94,10 +97,11 @@ dbRef.child("data").get().then((snapshot) => {
         let VAR99 = {};
         let ASSET_MATRICES = {};
         let PORT_SAMPLE = [];
+        
         for (let c of CURRENCIES) {
             ER[c] = math.round(snapshot.child("er_" + c).val(), ACCURACY_ER);
             COV[c] = snapshot.child("cov_" + c).val();
-            ERCC[c] = math.round(snapshot.child("ercc_" + c).val(), ACCURACY_ER);
+            ERCC[c] = math.round(snapshot.child("ercc_" + c).val(), ACCURACY_ER);            
             COVCC[c] = snapshot.child("covcc_" + c).val();
             SAMPLE[c] = makeSample(COVCC[c], SAMPLE_SIZE, true);
             SIGMA[c] = math.round(math.sqrt(math.diag(COV[c])), ACCURACY);
@@ -376,10 +380,6 @@ dbRef.child("data").get().then((snapshot) => {
             };
 
             let chart = new google.visualization.ColumnChart(distChart);
-            
-            const title = document.createElement('div');
-            title.className = 'distChartTitle';
-            title.innerHTML = 'Distribution of returns';
 
             function draw() {
                 let data = makeHistogramData(PORT_SAMPLE, -100, 200, 5);
@@ -393,6 +393,10 @@ dbRef.child("data").get().then((snapshot) => {
             }
 
             draw();
+            
+            let title = document.createElement('div');
+            title.className = 'chartTitle';
+            title.innerHTML = 'Distribution of returns';
             distChart.childNodes[0].childNodes[0].append(title);
             
             document.addEventListener("summarized", draw);
@@ -412,6 +416,101 @@ dbRef.child("data").get().then((snapshot) => {
             resampButton.disabled = false;
             }, 1);
         });
+        
+        //-----------------path chart---------------------
+        let tPoints = [0, 50, 100, 150, 200, 250];
+        
+        google.charts.setOnLoadCallback(initPath);
+        
+        function initPath() {
+            
+            let chart = new google.visualization.ComboChart(pathChart);
+            
+            let options0 = {
+
+                hAxis: {    
+                    title: 'days',
+                    titleTextStyle: { italic: false },
+                    viewWindow: { min: 0, max: tPoints[tPoints.length - 1] * 1.01 }
+                },
+
+                vAxis: {
+                    title: 'return',
+                    titleTextStyle: { italic: false }
+                },
+
+                series: {
+                    0: { type: 'line', color: 'blue', pointShape: 'circle' }
+                },
+
+                lineWidth: 2,
+                width: 600,
+                height: 360,
+                pointSize: 5,
+
+                chartArea: {width: 500, height: 300},
+
+                legend: { position: 'none' },
+                
+                intervals: { 
+                    style: 'bars',
+                    barWidth: 0.1,
+                    lineWidth: 2
+                },
+                
+                animation: {
+                    duration: 300,
+                    startup: true
+                }
+
+            };
+            
+            function draw0() {
+                let d = [];
+                if (portTable.matrix.length > 1) {
+                    let matrix = lessHeader(portTable.matrix);
+                    let er = math.divide(math.column(matrix, 6), 100);
+                    let money = math.column(matrix, 1);
+                    let w = math.multiply(money, 1 / math.sum(money));
+                    let qcc5 = math.log(1 + math.quantileSeq(PORT_SAMPLE, 0.05) / 100);
+                    let qcc95 = math.log(1 + math.quantileSeq(PORT_SAMPLE, 0.95) / 100);
+                    
+                    let i = getIndices(TICKERS, colToArr(math.column(matrix, 0)));                    
+                    let ercc = math.divide(math.subset(ERCC[cur], math.index(i)), 100);
+
+                    if (!Array.isArray(ercc)) ercc = [ercc];
+                    let erccAvg = math.multiply([ercc], w)[0][0];
+                    
+                    d = math.transpose([
+                        tPoints,
+                        getPortErForTimes(er, w,  DAYS_IN_YEAR, tPoints),
+                        getQForTimes(qcc5, erccAvg, DAYS_IN_YEAR, tPoints),
+                        getQForTimes(qcc95, erccAvg, DAYS_IN_YEAR, tPoints)
+                    ]);
+                }
+
+                let data = new google.visualization.DataTable();
+                data.addColumn('number', 'time');
+                data.addColumn('number', 'mean');
+                data.addColumn({type:'number', role:'interval'});
+                data.addColumn({type:'number', role:'interval'});
+                data.addRows(d);
+                chart.draw(data, options0);
+            }
+            
+            draw0();
+            
+            let title = document.createElement('div');
+            title.className = 'chartTitle';
+            title.innerHTML = 'Portfolio path';
+            pathChart.childNodes[0].childNodes[0].append(title);
+            
+            document.addEventListener("summarized", draw0);
+            
+        }
+        
+        
+        
         
 
 
