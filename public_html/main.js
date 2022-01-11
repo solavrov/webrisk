@@ -374,8 +374,11 @@ dbRef.child("data").get().then((snapshot) => {
                     title: 'outcomes',
                     titleTextStyle: {
                         italic: false
-                    }
+                    },
+                    minValue: 0,
+                    maxValue: 1
                 }
+                
 
             };
 
@@ -418,7 +421,7 @@ dbRef.child("data").get().then((snapshot) => {
         });
         
         //-----------------path chart---------------------
-        let tPoints = [0, 50, 100, 150, 200, 250];
+        const tPoints = [0, 50, 100, 150, 200, 250];
         
         google.charts.setOnLoadCallback(initPath);
         
