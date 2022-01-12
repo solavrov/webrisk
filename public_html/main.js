@@ -412,11 +412,11 @@ dbRef.child("data").get().then((snapshot) => {
             thinker2.style.visibility = "visible";
             window.setTimeout(function() {
                 for (let c of CURRENCIES) {
-                SAMPLE[c] = makeSample(COVCC[c], SAMPLE_SIZE, true);
-            };
-            portTable.refreshSummary();
-            thinker2.style.visibility = "hidden";
-            resampButton.disabled = false;
+                    SAMPLE[c] = makeSample(COVCC[c], SAMPLE_SIZE, true);
+                };
+                portTable.refreshSummary();
+                thinker2.style.visibility = "hidden";
+                resampButton.disabled = false;
             }, 1);
         });
         
@@ -472,17 +472,16 @@ dbRef.child("data").get().then((snapshot) => {
                 let d = [];
                 if (portTable.matrix.length > 1) {
                     let matrix = lessHeader(portTable.matrix);
-                    let er = math.divide(math.column(matrix, 6), 100);
+                    let er = colToArr(math.divide(math.column(matrix, 6), 100));
                     let money = math.column(matrix, 1);
-                    let w = math.multiply(money, 1 / math.sum(money));
+                    let w = colToArr(math.multiply(money, 1 / math.sum(money)));
                     let qcc5 = math.log(1 + math.quantileSeq(PORT_SAMPLE, 0.05) / 100);
                     let qcc95 = math.log(1 + math.quantileSeq(PORT_SAMPLE, 0.95) / 100);
                     
-                    let indices = getIndices(TICKERS, colToArr(math.column(matrix, 0)));                    
-                    let ercc = math.divide(math.subset(ERCC[cur], math.index(indices)), 100);
-
-                    if (!Array.isArray(ercc)) ercc = [ercc];
-                    let erccAvg = math.multiply([ercc], w)[0][0];
+                    let indices = getIndices(TICKERS, colToArr(math.column(matrix, 0)));
+                    let sigmacc = math.divide(getVals(SIGMACC[cur], indices), 100);
+                    let ercc = math.add(math.log(math.add(1, er)), math.divide(math.square(sigmacc), -2));
+                    let erccAvg = math.sum(math.dotMultiply(ercc, w));
                     
                     d = math.round([
                         tPoints,
