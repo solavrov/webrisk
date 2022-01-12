@@ -261,15 +261,37 @@ function getQForTimes(qccBase, erccBase, tBase, timeArr) {
     return math.multiply(math.add(math.exp(c), -1), 100);
 }
 
+function cumsumrow(row) {
+    let row2 = [0];
+    for (let i = 0; i < row.length; i++) {
+        row2.push(row2[i] + row[i]);
+    }
+    return row2;
+}
 
-//function makePath(w, erccBase, covccBase, tBase, tEnd) {
-//    let indexOfZero = math.diag(covccBase).indexOf(0);
-//    let covccBase2 = math.divide(delCross(covccBase, indexOfZero), tBase);
-//    let omega = chol(covccBase2);
-//    let x = rnormMatrix(covccBase2.length, tEnd);
-//    x = math.multiply(omega, x);    
-//    x.splice(indexOfZero, 0, math.zeros([1, tEnd])[0]);
-//    
-//    
-//    
-//}
+
+function cumsum(mtx) {
+    let mtx2 = [];
+    for (let i = 0; i < mtx.length; i++) {
+        mtx2.push(cumsumrow(mtx[i]));
+    }
+    return mtx2;
+}
+
+function makePath(erccArrBase, covccBase, tBase, tEnd) {
+    if (!Array.isArray(erccArrBase)) erccArrBase = [erccArrBase];
+    if (!Array.isArray(wArr)) wArr = [wArr];
+    let indexOfZero = math.diag(covccBase).indexOf(0);
+    let covccBase2 = math.divide(delCross(covccBase, indexOfZero), tBase);
+    let omega = chol(covccBase2);
+    let x = rnormMatrix(covccBase2.length, tEnd);
+    x = math.multiply(omega, x);    
+    x.splice(indexOfZero, 0, math.zeros([1, tEnd])[0]);
+    let dr = math.add(math.divide(arrToMtx(erccArrBase, tEnd), tBase), x);
+    return cumsum(dr);
+}
+
+function makePortPath(wArr, erccArrBase, covccBase, tBase, tEnd) {
+    let path = makePath(erccArrBase, covccBase, tBase, tEnd);
+    return math.multiply([wArr], path)[0];
+}
