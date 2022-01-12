@@ -240,20 +240,16 @@ function makeHistogramData(array, min_val, max_val, step) {
     return hist;
 }
 
-function getPortErForTimes(erColBase, wCol, tBase, timeArr) {
-    if (!Array.isArray(erColBase)) {
-        erColBase = [[erColBase]];
-        wCol = [[wCol]];
-    }
-    let erArr = math.transpose(erColBase)[0];
+function getPortErForTimes(erArrBase, wArr, tBase, timeArr) {
+    if (!Array.isArray(erArrBase)) erArrBase = [erArrBase];
+    if (!Array.isArray(wArr)) wArr = [wArr];
     let erMtx = [];
-    timeArr.forEach(() => {erMtx.push(erArr);});
+    timeArr.forEach(() => {erMtx.push(erArrBase);});
     erMtx = math.transpose(erMtx);
     let timeMtx = [];
     let timeArr2 = math.divide(timeArr, tBase);
-    erColBase.forEach(() => {timeMtx.push(timeArr2);});
-    let wRow = math.transpose(wCol);
-    let r = math.add(math.multiply(wRow, math.dotPow(math.add(1, erMtx), timeMtx)), -1);
+    erArrBase.forEach(() => {timeMtx.push(timeArr2);});
+    let r = math.add(math.multiply([wArr], math.dotPow(math.add(1, erMtx), timeMtx)), -1);
     r = math.multiply(r[0], 100);
     return r;
 }
@@ -264,3 +260,16 @@ function getQForTimes(qccBase, erccBase, tBase, timeArr) {
     let c = math.add(math.multiply(a, timeArr), math.multiply(b, math.sqrt(timeArr)));
     return math.multiply(math.add(math.exp(c), -1), 100);
 }
+
+
+//function makePath(w, erccBase, covccBase, tBase, tEnd) {
+//    let indexOfZero = math.diag(covccBase).indexOf(0);
+//    let covccBase2 = math.divide(delCross(covccBase, indexOfZero), tBase);
+//    let omega = chol(covccBase2);
+//    let x = rnormMatrix(covccBase2.length, tEnd);
+//    x = math.multiply(omega, x);    
+//    x.splice(indexOfZero, 0, math.zeros([1, tEnd])[0]);
+//    
+//    
+//    
+//}
