@@ -17,7 +17,8 @@ export {
     arrToMtx,
     makeHistogramData,
     getPortErForTimes,
-    getQForTimes
+    getQForTimes,
+    makePortPath
 };
 
 function getIndices(array, vals) {
@@ -131,12 +132,14 @@ function chol(A) {
     return L;
 }
 
-function delCross(symmetricMatrix, indexToDel) {
-    let mtx = symmetricMatrix.slice(0);
-    mtx.splice(indexToDel, 1);
-    mtx = math.transpose(mtx);
-    mtx.splice(indexToDel, 1);
-    mtx = math.transpose(mtx);
+function delCross(matrix, indexToDel) {
+    let mtx = matrix.slice(0);
+    if (indexToDel >= 0) {
+        mtx.splice(indexToDel, 1);
+        mtx = math.transpose(mtx);
+        mtx.splice(indexToDel, 1);
+        mtx = math.transpose(mtx);
+    }
     return mtx;
 }
 
@@ -280,18 +283,25 @@ function cumsum(mtx) {
 
 function makePath(erccArrBase, covccBase, tBase, tEnd) {
     if (!Array.isArray(erccArrBase)) erccArrBase = [erccArrBase];
-    if (!Array.isArray(wArr)) wArr = [wArr];
+    if (!Array.isArray(covccBase)) covccBase = [[covccBase]];
     let indexOfZero = math.diag(covccBase).indexOf(0);
     let covccBase2 = math.divide(delCross(covccBase, indexOfZero), tBase);
-    let omega = chol(covccBase2);
-    let x = rnormMatrix(covccBase2.length, tEnd);
-    x = math.multiply(omega, x);    
-    x.splice(indexOfZero, 0, math.zeros([1, tEnd])[0]);
-    let dr = math.add(math.divide(arrToMtx(erccArrBase, tEnd), tBase), x);
-    return cumsum(dr);
+    let dr;
+    if (covccBase2.length > 0) {
+        let omega = chol(covccBase2);
+        let x = rnormMatrix(covccBase2.length, tEnd);
+        x = math.multiply(omega, x);    
+        if (indexOfZero >= 0) x.splice(indexOfZero, 0, math.zeros([1, tEnd])[0]);
+        dr = math.add(math.divide(arrToMtx(erccArrBase, tEnd), tBase), x);
+    } else {
+        dr = math.divide(arrToMtx(erccArrBase, tEnd), tBase);
+    }
+    let r = math.add(math.exp(cumsum(dr)), -1);
+    return math.multiply(r, 100);
 }
 
 function makePortPath(wArr, erccArrBase, covccBase, tBase, tEnd) {
+    if (!Array.isArray(wArr)) wArr = [wArr];
     let path = makePath(erccArrBase, covccBase, tBase, tEnd);
     return math.multiply([wArr], path)[0];
 }

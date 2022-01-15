@@ -20,7 +20,8 @@ import {
     arrToMtx,
     makeHistogramData,
     getPortErForTimes,
-    getQForTimes
+    getQForTimes,
+    makePortPath
 } from "./funs.js";
 
 const DAYS_IN_YEAR = 250;
@@ -483,6 +484,10 @@ dbRef.child("data").get().then((snapshot) => {
                     let ercc = math.add(math.log(math.add(1, er)), math.divide(math.square(sigmacc), -2));
                     let erccAvg = math.sum(math.dotMultiply(ercc, w));
                     
+                    let covcc = math.divide(math.subset(COVCC[cur], math.index(indices, indices)), 10000);
+                    let path = makePortPath(w, ercc, covcc, DAYS_IN_YEAR, DAYS_IN_YEAR);
+                    console.log(path);
+                    
                     d = math.round([
                         tPoints,
                         getPortErForTimes(er, w,  DAYS_IN_YEAR, tPoints),
@@ -507,7 +512,7 @@ dbRef.child("data").get().then((snapshot) => {
                 data.addColumn('number', 'mean');
                 data.addColumn({type:'number', role:'interval'});
                 data.addColumn({type:'number', role:'interval'});
-                data.addColumn({type: 'string', role: 'tooltip'});
+                data.addColumn({type:'string', role:'tooltip'});
                 data.addRows(d);
                 chart.draw(data, options0);
             }
