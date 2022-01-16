@@ -74,6 +74,7 @@ const pathChart = document.getElementById("pathChart");
 const thinker = document.getElementById("thinker");
 const resampButton = document.getElementById("resampButton");
 const thinker2 = document.getElementById("thinker2");
+const pathButton = document.getElementById("pathButton");
 
 // ------------------Main-------------------------
 dbRef.child("data").get().then((snapshot) => {
@@ -460,16 +461,27 @@ dbRef.child("data").get().then((snapshot) => {
                     style: 'bars',
                     barWidth: 0.1,
                     lineWidth: 2
-                },
-                
-                animation: {
-                    duration: 300,
-                    startup: true
                 }
+                
+//                animation: {
+//                    duration: 300,
+//                    startup: true
+//                }
 
             };
             
-            function draw0() {
+            let options = {...options0};
+            options.series = {
+                0: { type: 'area' },
+                1: { type: 'line', color: 'blue' }
+            };
+            options.intervals = { 
+                style: 'bars',
+                barWidth: 10,
+                lineWidth: 2
+            };
+            
+            function makeData(isPath) {
                 let d = [];
                 if (portTable.matrix.length > 1) {
                     let matrix = lessHeader(portTable.matrix);
@@ -478,34 +490,36 @@ dbRef.child("data").get().then((snapshot) => {
                     let w = colToArr(math.multiply(money, 1 / math.sum(money)));
                     let qcc5 = math.log(1 + math.quantileSeq(PORT_SAMPLE, 0.05) / 100);
                     let qcc95 = math.log(1 + math.quantileSeq(PORT_SAMPLE, 0.95) / 100);
-                    
                     let indices = getIndices(TICKERS, colToArr(math.column(matrix, 0)));
                     let sigmacc = math.divide(getVals(SIGMACC[cur], indices), 100);
                     let ercc = math.add(math.log(math.add(1, er)), math.divide(math.square(sigmacc), -2));
                     let erccAvg = math.sum(math.dotMultiply(ercc, w));
-                    
-                    let covcc = math.divide(math.subset(COVCC[cur], math.index(indices, indices)), 10000);
-                    let path = makePortPath(w, ercc, covcc, DAYS_IN_YEAR, DAYS_IN_YEAR);
-                    console.log(path);
-                    
                     d = math.round([
                         tPoints,
                         getPortErForTimes(er, w,  DAYS_IN_YEAR, tPoints),
                         getQForTimes(qcc5, erccAvg, DAYS_IN_YEAR, tPoints),
                         getQForTimes(qcc95, erccAvg, DAYS_IN_YEAR, tPoints)
                     ], ACCURACY_ER);
-                    
                     let tips = [];
                     for (let i = 0; i < tPoints.length; i++) {
                         tips.push("expected return " + d[1][i] + "\n90% in [" + d[2][i] + ", " + d[3][i] + "]");
                     }
-                    
                     d.push(tips);
-                    
+                    if (isPath) {
+                        let nullArr = new Array(tPoints.length).fill(null);
+                        d.splice(1, 0, nullArr, nullArr);
+                    }
                     d = math.transpose(d);
-                    
-                    
+                    if (isPath) {
+                        
+                        
+                    }
                 }
+                return d;
+            }
+            
+            function draw0() {
+                
 
                 let data = new google.visualization.DataTable();
                 data.addColumn('number', 'time');
@@ -516,6 +530,51 @@ dbRef.child("data").get().then((snapshot) => {
                 data.addRows(d);
                 chart.draw(data, options0);
             }
+            
+//            function draw() {
+//        
+//                pathButton.disabled = true;
+//
+//                let y_max = Y_MAX_START;
+//                let y_min = Y_MIN_START;
+//
+//                options.vAxis.viewWindow.max = y_max;
+//                options.vAxis.viewWindow.min = y_min;
+//
+//                let d = [];
+//
+//                
+//
+//                let data = new google.visualization.DataTable();
+//                data.addColumn('number', 'time');
+//                data.addColumn('number', 'return');
+//                data.addColumn({type: 'string', role: 'style'});
+//                data.addColumn('number', 'mean');
+//                data.addColumn({type:'number', role:'interval'});
+//                data.addColumn({type:'number', role:'interval'});
+//
+//                for (let i = 0; i < pathStart; i++) data.addRows([d[i]]);
+//
+//                function go(j) {
+//                    for (let i = j; i < j + 5; i++) {
+//                        if (d[i][1] > y_max) {
+//                            options.vAxis.viewWindow.max = y_max = d[i][1]; 
+//                        }
+//                        if (d[i][1] < y_min) {
+//                            options.vAxis.viewWindow.min = y_min = d[i][1];
+//                        }
+//                        data.addRows([d[i]]);
+//                    }
+//                    chart.draw(data, options);
+//                    setTimeout(function() {    
+//                        if (j + 5 <= T + pathStart - 5) go(j + 5);
+//                        else lineBut.disabled = false;
+//                    }, T_DELAY);
+//                }
+//
+//                go(pathStart);
+//
+//            }
             
             draw0();
             
@@ -528,7 +587,7 @@ dbRef.child("data").get().then((snapshot) => {
             
         }
         
-        
+
         
         
 
