@@ -445,7 +445,8 @@ dbRef.child("data").get().then((snapshot) => {
                 },
 
                 series: {
-                    0: { type: 'line', color: 'blue', pointShape: 'circle', pointSize: 5 }
+                    0: { type: 'line', color: 'blue', pointShape: 'circle', pointSize: 5 },
+                    1: { type: 'area'}
                 },
 
                 lineWidth: 2,
@@ -465,10 +466,6 @@ dbRef.child("data").get().then((snapshot) => {
             };
             
             let options = {...options0};
-            options.series = {
-                0: { type: 'area'},
-                1: { type: 'line', color: 'blue', pointShape: 'circle', pointSize: 5 }
-            };
             options.intervals = { 
                 style: 'bars',
                 barWidth: 10,
@@ -499,32 +496,37 @@ dbRef.child("data").get().then((snapshot) => {
                         tips.push("expected return " + d[1][i] + "\n90% in [" + d[2][i] + ", " + d[3][i] + "]");
                     }
                     d.push(tips);
-                    if (isPath) {
-                        let nullArr = new Array(tPoints.length).fill(null);
-                        d.splice(1, 0, nullArr, nullArr);
-                    }
+                    let nullArr = new Array(tPoints.length).fill(null);
+                    d.splice(d.length, 0, nullArr, nullArr);
                     d = math.transpose(d);
                     if (isPath) {
                         let covcc = math.divide(math.subset(COVCC[cur], math.index(indices, indices)), 10000);
                         let path = makePortPath(w, ercc, covcc, DAYS_IN_YEAR, DAYS_IN_YEAR);
-                        d.push([0, 0, 'color: green', null, null, null, null]);
+                        d.push([0, null, null, null, null, 0, 'color: green']);
                         for (let i = 0; i < path.length; i++) {
-                            if (path[i] >= 0) d.push([i+1, path[i], 'color: green', null, null, null, null]);
-                            if (path[i] < 0) d.push([i+1, path[i], 'color: red', null, null, null, null]);
+                            if (path[i] >= 0) d.push([i+1, null, null, null, null, path[i], 'color: green']);
+                            if (path[i] < 0) d.push([i+1, null, null, null, null, path[i], 'color: red']);
                         }
                     }
                 }
                 return d;
             }
             
-            function draw0() {
-                let d = makeData(false);
+            function makeChartData() {
                 let data = new google.visualization.DataTable();
                 data.addColumn('number', 'time');
                 data.addColumn('number', 'mean');
                 data.addColumn({type:'number', role:'interval'});
                 data.addColumn({type:'number', role:'interval'});
                 data.addColumn({type:'string', role:'tooltip'});
+                data.addColumn('number', 'return');
+                data.addColumn({type: 'string', role: 'style'});
+                return data;
+            }
+            
+            function draw0() {
+                let d = makeData(false);
+                let data = makeChartData();
                 data.addRows(d);
                 chart.draw(data, options0);
             }
@@ -533,14 +535,7 @@ dbRef.child("data").get().then((snapshot) => {
                 if (portTable.matrix.length > 1) {
                     pathButton.disabled = true;
                     let d = makeData(true);
-                    let data = new google.visualization.DataTable();
-                    data.addColumn('number', 'time');
-                    data.addColumn('number', 'return');
-                    data.addColumn({type: 'string', role: 'style'});
-                    data.addColumn('number', 'mean');
-                    data.addColumn({type:'number', role:'interval'});
-                    data.addColumn({type:'number', role:'interval'});
-                    data.addColumn({type:'string', role:'tooltip'});
+                    let data = makeChartData();
                     for (let i = 0; i < tPoints.length; i++) data.addRows([d[i]]);
                     function go(j, k) {
                         if (k > d.length) k = d.length;
