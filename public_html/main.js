@@ -530,34 +530,29 @@ dbRef.child("data").get().then((snapshot) => {
             }
             
             function draw() {
-        
-                pathButton.disabled = true;
-
-                let d = makeData(true);
-               
-                let data = new google.visualization.DataTable();
-                data.addColumn('number', 'time');
-                data.addColumn('number', 'return');
-                data.addColumn({type: 'string', role: 'style'});
-                data.addColumn('number', 'mean');
-                data.addColumn({type:'number', role:'interval'});
-                data.addColumn({type:'number', role:'interval'});
-                data.addColumn({type:'string', role:'tooltip'});
-
-                for (let i = 0; i < tPoints.length; i++) data.addRows([d[i]]);
-
-                function go(j, k) {
-                    if (k > d.length) k = d.length;
-                    for (let i = j; i < k; i++) data.addRows([d[i]]);
-                    chart.draw(data, options);
-                    setTimeout(function() {    
-                        if (k < d.length) go(k, k + 5);
-                        else pathButton.disabled = false;
-                    }, 10);
+                if (portTable.matrix.length > 1) {
+                    pathButton.disabled = true;
+                    let d = makeData(true);
+                    let data = new google.visualization.DataTable();
+                    data.addColumn('number', 'time');
+                    data.addColumn('number', 'return');
+                    data.addColumn({type: 'string', role: 'style'});
+                    data.addColumn('number', 'mean');
+                    data.addColumn({type:'number', role:'interval'});
+                    data.addColumn({type:'number', role:'interval'});
+                    data.addColumn({type:'string', role:'tooltip'});
+                    for (let i = 0; i < tPoints.length; i++) data.addRows([d[i]]);
+                    function go(j, k) {
+                        if (k > d.length) k = d.length;
+                        for (let i = j; i < k; i++) data.addRows([d[i]]);
+                        chart.draw(data, options);
+                        setTimeout(function() {    
+                            if (k < d.length) go(k, k + 5);
+                            else pathButton.disabled = false;
+                        }, 10);
+                    }
+                    go(tPoints.length, tPoints.length + 5);
                 }
-
-                go(tPoints.length, tPoints.length + 5);
-
             }
             
             draw0();
