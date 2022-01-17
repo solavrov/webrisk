@@ -29,8 +29,12 @@ const ALFA_95 = -1.645;
 const ALFA_99 = -2.326;
 const ACCURACY = 2;
 const ACCURACY_ER = 2;
+const ACCURACY_CHART_ER = 3;
+const ACCURACY_CHART_Q = 3;
 const ACCURACY_SHARE = 3;
 const ACCURACY_MC = 0;
+const CHART_DELAY = 10;
+const CHART_STEP = 6;
 const SAMPLE_SIZE = 1000;
 const CURRENCIES = ['rub', 'usd', 'eur'];
 const WIDE_SPACE = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
@@ -459,7 +463,7 @@ dbRef.child("data").get().then((snapshot) => {
                 
                 intervals: { 
                     style: 'bars',
-                    barWidth: 0.1,
+                    barWidth: 0.2,
                     lineWidth: 2
                 }
 
@@ -468,7 +472,7 @@ dbRef.child("data").get().then((snapshot) => {
             let options = {...options0};
             options.intervals = { 
                 style: 'bars',
-                barWidth: 10,
+                barWidth: 12,
                 lineWidth: 2
             };
             
@@ -485,12 +489,12 @@ dbRef.child("data").get().then((snapshot) => {
                     let sigmacc = math.divide(getVals(SIGMACC[cur], indices), 100);
                     let ercc = math.add(math.log(math.add(1, er)), math.divide(math.square(sigmacc), -2));
                     let erccAvg = math.sum(math.dotMultiply(ercc, w));
-                    d = math.round([
+                    d = [
                         tPoints,
-                        getPortErForTimes(er, w,  DAYS_IN_YEAR, tPoints),
-                        getQForTimes(qcc5, erccAvg, DAYS_IN_YEAR, tPoints),
-                        getQForTimes(qcc95, erccAvg, DAYS_IN_YEAR, tPoints)
-                    ], ACCURACY_ER);
+                        math.round(getPortErForTimes(er, w,  DAYS_IN_YEAR, tPoints), ACCURACY_CHART_ER),
+                        math.round(getQForTimes(qcc5, erccAvg, DAYS_IN_YEAR, tPoints), ACCURACY_CHART_Q),
+                        math.round(getQForTimes(qcc95, erccAvg, DAYS_IN_YEAR, tPoints), ACCURACY_CHART_Q)
+                    ];
                     let tips = [];
                     for (let i = 0; i < tPoints.length; i++) {
                         tips.push("expected return " + d[1][i] + "\n90% in [" + d[2][i] + ", " + d[3][i] + "]");
@@ -501,7 +505,7 @@ dbRef.child("data").get().then((snapshot) => {
                     d = math.transpose(d);
                     if (isPath) {
                         let covcc = math.divide(math.subset(COVCC[cur], math.index(indices, indices)), 10000);
-                        let path = makePortPath(w, ercc, covcc, DAYS_IN_YEAR, DAYS_IN_YEAR);
+                        let path = makePortPath(w, ercc, covcc, DAYS_IN_YEAR, tPoints[tPoints.length - 1]);
                         d.push([0, null, null, null, null, 0, 'color: green']);
                         for (let i = 0; i < path.length; i++) {
                             if (path[i] >= 0) d.push([i+1, null, null, null, null, path[i], 'color: green']);
@@ -542,11 +546,11 @@ dbRef.child("data").get().then((snapshot) => {
                         for (let i = j; i < k; i++) data.addRows([d[i]]);
                         chart.draw(data, options);
                         setTimeout(function() {    
-                            if (k < d.length) go(k, k + 5);
+                            if (k < d.length) go(k, k + CHART_STEP);
                             else pathButton.disabled = false;
-                        }, 10);
+                        }, CHART_DELAY);
                     }
-                    go(tPoints.length, tPoints.length + 5);
+                    go(tPoints.length, tPoints.length + CHART_STEP);
                 }
             }
             
