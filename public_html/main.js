@@ -445,13 +445,12 @@ dbRef.child("data").get().then((snapshot) => {
                 },
 
                 series: {
-                    0: { type: 'line', color: 'blue', pointShape: 'circle' }
+                    0: { type: 'line', color: 'blue', pointShape: 'circle', pointSize: 5 }
                 },
 
                 lineWidth: 2,
                 width: 600,
                 height: 360,
-                pointSize: 5,
 
                 chartArea: {width: 500, height: 300},
 
@@ -462,18 +461,13 @@ dbRef.child("data").get().then((snapshot) => {
                     barWidth: 0.1,
                     lineWidth: 2
                 }
-                
-//                animation: {
-//                    duration: 300,
-//                    startup: true
-//                }
 
             };
             
             let options = {...options0};
             options.series = {
-                0: { type: 'area' },
-                1: { type: 'line', color: 'blue' }
+                0: { type: 'area'},
+                1: { type: 'line', color: 'blue', pointShape: 'circle', pointSize: 5 }
             };
             options.intervals = { 
                 style: 'bars',
@@ -511,16 +505,20 @@ dbRef.child("data").get().then((snapshot) => {
                     }
                     d = math.transpose(d);
                     if (isPath) {
-                        
-                        
+                        let covcc = math.divide(math.subset(COVCC[cur], math.index(indices, indices)), 10000);
+                        let path = makePortPath(w, ercc, covcc, DAYS_IN_YEAR, DAYS_IN_YEAR);
+                        d.push([0, 0, 'color: green', null, null, null, null]);
+                        for (let i = 0; i < path.length; i++) {
+                            if (path[i] >= 0) d.push([i+1, path[i], 'color: green', null, null, null, null]);
+                            if (path[i] < 0) d.push([i+1, path[i], 'color: red', null, null, null, null]);
+                        }
                     }
                 }
                 return d;
             }
             
             function draw0() {
-                
-
+                let d = makeData(false);
                 let data = new google.visualization.DataTable();
                 data.addColumn('number', 'time');
                 data.addColumn('number', 'mean');
@@ -531,50 +529,36 @@ dbRef.child("data").get().then((snapshot) => {
                 chart.draw(data, options0);
             }
             
-//            function draw() {
-//        
-//                pathButton.disabled = true;
-//
-//                let y_max = Y_MAX_START;
-//                let y_min = Y_MIN_START;
-//
-//                options.vAxis.viewWindow.max = y_max;
-//                options.vAxis.viewWindow.min = y_min;
-//
-//                let d = [];
-//
-//                
-//
-//                let data = new google.visualization.DataTable();
-//                data.addColumn('number', 'time');
-//                data.addColumn('number', 'return');
-//                data.addColumn({type: 'string', role: 'style'});
-//                data.addColumn('number', 'mean');
-//                data.addColumn({type:'number', role:'interval'});
-//                data.addColumn({type:'number', role:'interval'});
-//
-//                for (let i = 0; i < pathStart; i++) data.addRows([d[i]]);
-//
-//                function go(j) {
-//                    for (let i = j; i < j + 5; i++) {
-//                        if (d[i][1] > y_max) {
-//                            options.vAxis.viewWindow.max = y_max = d[i][1]; 
-//                        }
-//                        if (d[i][1] < y_min) {
-//                            options.vAxis.viewWindow.min = y_min = d[i][1];
-//                        }
-//                        data.addRows([d[i]]);
-//                    }
-//                    chart.draw(data, options);
-//                    setTimeout(function() {    
-//                        if (j + 5 <= T + pathStart - 5) go(j + 5);
-//                        else lineBut.disabled = false;
-//                    }, T_DELAY);
-//                }
-//
-//                go(pathStart);
-//
-//            }
+            function draw() {
+        
+                pathButton.disabled = true;
+
+                let d = makeData(true);
+               
+                let data = new google.visualization.DataTable();
+                data.addColumn('number', 'time');
+                data.addColumn('number', 'return');
+                data.addColumn({type: 'string', role: 'style'});
+                data.addColumn('number', 'mean');
+                data.addColumn({type:'number', role:'interval'});
+                data.addColumn({type:'number', role:'interval'});
+                data.addColumn({type:'string', role:'tooltip'});
+
+                for (let i = 0; i < tPoints.length; i++) data.addRows([d[i]]);
+
+                function go(j, k) {
+                    if (k > d.length) k = d.length;
+                    for (let i = j; i < k; i++) data.addRows([d[i]]);
+                    chart.draw(data, options);
+                    setTimeout(function() {    
+                        if (k < d.length) go(k, k + 5);
+                        else pathButton.disabled = false;
+                    }, 10);
+                }
+
+                go(tPoints.length, tPoints.length + 5);
+
+            }
             
             draw0();
             
@@ -584,6 +568,7 @@ dbRef.child("data").get().then((snapshot) => {
             pathChart.childNodes[0].childNodes[0].append(title);
             
             document.addEventListener("summarized", draw0);
+            pathButton.addEventListener("click", draw);
             
         }
         

@@ -265,9 +265,10 @@ function getQForTimes(qccBase, erccBase, tBase, timeArr) {
 }
 
 function cumsumrow(row) {
-    let row2 = [0];
+    let row2 = [];
     for (let i = 0; i < row.length; i++) {
-        row2.push(row2[i] + row[i]);
+        if (i === 0) row2.push(row[0]);
+        else row2.push(row2[i-1] + row[i]);
     }
     return row2;
 }
