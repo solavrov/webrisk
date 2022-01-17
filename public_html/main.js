@@ -33,8 +33,8 @@ const ACCURACY_CHART_ER = 3;
 const ACCURACY_CHART_Q = 3;
 const ACCURACY_SHARE = 3;
 const ACCURACY_MC = 0;
-const CHART_DELAY = 10;
-const CHART_STEP = 6;
+const CHART_DELAY = 8;
+const CHART_STEP = 5;
 const SAMPLE_SIZE = 1000;
 const CURRENCIES = ['rub', 'usd', 'eur'];
 const WIDE_SPACE = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
@@ -445,7 +445,9 @@ dbRef.child("data").get().then((snapshot) => {
 
                 vAxis: {
                     title: 'return',
-                    titleTextStyle: { italic: false }
+                    titleTextStyle: { italic: false },
+                    minValue: -1,
+                    maxValue: 1
                 },
 
                 series: {
