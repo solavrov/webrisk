@@ -33,8 +33,8 @@ const ACCURACY_CHART_ER = 3;
 const ACCURACY_CHART_Q = 3;
 const ACCURACY_SHARE = 3;
 const ACCURACY_MC = 0;
-const CHART_DELAY = 8;
-const CHART_STEP = 5;
+const CHART_DELAY = 10;
+const CHART_STEP = 10;
 const SAMPLE_SIZE = 1000;
 const CURRENCIES = ['rub', 'usd', 'eur'];
 const WIDE_SPACE = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
@@ -467,6 +467,11 @@ dbRef.child("data").get().then((snapshot) => {
                     style: 'bars',
                     barWidth: 0.2,
                     lineWidth: 2
+                },
+                
+                animation: {
+                    duration: 300,
+                    startup: true
                 }
 
             };
@@ -477,6 +482,7 @@ dbRef.child("data").get().then((snapshot) => {
                 barWidth: 12,
                 lineWidth: 2
             };
+            delete options.animation;
             
             function makeData(isPath) {
                 let d = [];
