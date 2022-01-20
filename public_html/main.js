@@ -414,16 +414,18 @@ dbRef.child("data").get().then((snapshot) => {
         
         //-----------------new sample----------------
         resampButton.addEventListener("click", function() {
-            resampButton.disabled = true;
-            thinker2.style.visibility = "visible";
-            window.setTimeout(function() {
-                for (let c of CURRENCIES) {
-                    SAMPLE[c] = makeSample(COVCC[c], SAMPLE_SIZE, true);
-                };
-                portTable.refreshSummary();
-                thinker2.style.visibility = "hidden";
-                resampButton.disabled = false;
-            }, 1);
+            if (portTable.matrix.length > 1) {
+                resampButton.disabled = true;
+                thinker2.style.visibility = "visible";
+                window.setTimeout(function() {
+                    for (let c of CURRENCIES) {
+                        SAMPLE[c] = makeSample(COVCC[c], SAMPLE_SIZE, true);
+                    };
+                    portTable.refreshSummary();
+                    thinker2.style.visibility = "hidden";
+                    resampButton.disabled = false;
+                }, 1);
+            }
         });
         
         //-----------------path chart---------------------
