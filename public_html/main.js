@@ -482,7 +482,7 @@ dbRef.child("data").get().then((snapshot) => {
             let options = {...options0};
             options.intervals = { 
                 style: 'bars',
-                barWidth: 12,
+                barWidth: tPoints[tPoints.length - 1] / CHART_TIME_STEP / 25 * 1.2,
                 lineWidth: 2
             };
             delete options.animation;
