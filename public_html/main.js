@@ -33,8 +33,9 @@ const ACCURACY_CHART_ER = 3;
 const ACCURACY_CHART_Q = 3;
 const ACCURACY_SHARE = 3;
 const ACCURACY_MC = 0;
-const CHART_DELAY = 10;
-const CHART_STEP = 10;
+const CHART_ANIMATION_DELAY = 5;
+const CHART_ANIMATION_STEP = 3;
+const CHART_TIME_STEP = 2;
 const SAMPLE_SIZE = 1000;
 const CURRENCIES = ['rub', 'usd', 'eur'];
 const WIDE_SPACE = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
@@ -515,11 +516,11 @@ dbRef.child("data").get().then((snapshot) => {
                     d = math.transpose(d);
                     if (isPath) {
                         let covcc = math.divide(math.subset(COVCC[cur], math.index(indices, indices)), 10000);
-                        let path = makePortPath(w, ercc, covcc, DAYS_IN_YEAR, tPoints[tPoints.length - 1]);
+                        let path = makePortPath(w, ercc, covcc, DAYS_IN_YEAR, tPoints[tPoints.length - 1], CHART_TIME_STEP);
                         d.push([0, null, null, null, null, 0, 'color: green']);
-                        for (let i = 0; i < path.length; i++) {
-                            if (path[i] >= 0) d.push([i+1, null, null, null, null, path[i], 'color: green']);
-                            if (path[i] < 0) d.push([i+1, null, null, null, null, path[i], 'color: red']);
+                        for (let i = 0; i < path.r.length; i++) {
+                            if (path.r[i] >= 0) d.push([path.t[i], null, null, null, null, path.r[i], 'color: green']);
+                            if (path.r[i] < 0) d.push([path.t[i], null, null, null, null, path.r[i], 'color: red']);
                         }
                     }
                 }
@@ -556,11 +557,11 @@ dbRef.child("data").get().then((snapshot) => {
                         for (let i = j; i < k; i++) data.addRows([d[i]]);
                         chart.draw(data, options);
                         setTimeout(function() {    
-                            if (k < d.length) go(k, k + CHART_STEP);
+                            if (k < d.length) go(k, k + CHART_ANIMATION_STEP);
                             else pathButton.disabled = false;
-                        }, CHART_DELAY);
+                        }, CHART_ANIMATION_DELAY);
                     }
-                    go(tPoints.length, tPoints.length + CHART_STEP);
+                    go(tPoints.length, tPoints.length + CHART_ANIMATION_STEP);
                 }
             }
             

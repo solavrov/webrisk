@@ -282,7 +282,7 @@ function cumsum(mtx) {
     return mtx2;
 }
 
-function makePath(erccArrBase, covccBase, tBase, tEnd) {
+function makePath(erccArrBase, covccBase, tBase, tEnd, tStep) { //tStep should divide tEnd
     if (!Array.isArray(erccArrBase)) erccArrBase = [erccArrBase];
     if (!Array.isArray(covccBase)) covccBase = [[covccBase]];
     let indexOfZero = math.diag(covccBase).indexOf(0);
@@ -290,19 +290,22 @@ function makePath(erccArrBase, covccBase, tBase, tEnd) {
     let dr;
     if (covccBase2.length > 0) {
         let omega = chol(covccBase2);
-        let x = rnormMatrix(covccBase2.length, tEnd);
-        x = math.multiply(omega, x);    
-        if (indexOfZero >= 0) x.splice(indexOfZero, 0, math.zeros([1, tEnd])[0]);
-        dr = math.add(math.divide(arrToMtx(erccArrBase, tEnd), tBase), x);
+        let x = math.multiply(rnormMatrix(covccBase2.length, tEnd/tStep), math.sqrt(tStep));
+        x = math.multiply(omega, x);
+        if (indexOfZero >= 0) x.splice(indexOfZero, 0, math.zeros([1, tEnd/tStep])[0]);
+        dr = math.add(math.multiply(arrToMtx(erccArrBase, tEnd/tStep), tStep/tBase), x);
     } else {
-        dr = math.divide(arrToMtx(erccArrBase, tEnd), tBase);
+        dr = math.multiply(arrToMtx(erccArrBase, tEnd/tStep), tStep/tBase);
     }
-    let r = math.add(math.exp(cumsum(dr)), -1);
-    return math.multiply(r, 100);
+    let r = math.multiply(math.add(math.exp(cumsum(dr)), -1), 100);
+    let t = new Array(tEnd/tStep).fill(tStep);
+    t = cumsumrow(t);
+    return {t:t, r:r};
 }
 
-function makePortPath(wArr, erccArrBase, covccBase, tBase, tEnd) {
+function makePortPath(wArr, erccArrBase, covccBase, tBase, tEnd, tStep) {
     if (!Array.isArray(wArr)) wArr = [wArr];
-    let path = makePath(erccArrBase, covccBase, tBase, tEnd);
-    return math.multiply([wArr], path)[0];
+    let path = makePath(erccArrBase, covccBase, tBase, tEnd, tStep);
+    path.r = math.multiply([wArr], path.r)[0];
+    return path;
 }
