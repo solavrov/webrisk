@@ -24,6 +24,67 @@ import {
     makePortPath
 } from "./funs.js";
 
+let glob = {
+    data: {},
+    html: {},
+    pathChart: {}
+};
+
+glob.daysYear = 250;
+glob.alfa95 = -1.645;
+glob.alfa99 = -2.326;
+glob.sampleSize = 1000;
+glob.curList = ['rub', 'usd', 'eur'];
+glob.cur = 'rub';
+glob.wideSpace = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+glob.accEr = 2;
+glob.accQ = 2;
+glob.accQTotal = 0;
+glob.accShare = 3;
+
+glob.data.tickers = [];
+glob.data.types = [];
+glob.data.names = [];
+glob.data.er = {};
+glob.data.cov = {};
+glob.data.ercc = {};
+glob.data.covcc = {};
+glob.data.sample = {};
+glob.data.sigma = {};
+glob.data.sigmacc = {};
+glob.data.var95 = {};
+glob.data.var99 = {};
+glob.data.assetTableMtx = {};
+glob.data.portSample = [];
+
+glob.html.body  = document.getElementById("body");
+glob.html.loader = document.getElementById("loader");
+glob.html.updateInfo  = document.getElementById("updateInfo");
+glob.html.stockUsBox = document.getElementById("stockUsBox");
+glob.html.stockRuBox = document.getElementById("stockRuBox");
+glob.html.bondBox = document.getElementById("bondBox");
+glob.html.commodityBox = document.getElementById("commodityBox");
+glob.html.etfBox = document.getElementById("etfBox");
+glob.html.cryptoBox = document.getElementById("cryptoBox");
+glob.html.portBox = document.getElementById("portBox");
+glob.html.curPick = document.getElementsByName("curPick");
+glob.html.targetInput = document.getElementById("targetInput");
+glob.html.optButton = document.getElementById("optButton");
+glob.html.distChart = document.getElementById("distChart");
+glob.html.pathChart = document.getElementById("pathChart");
+glob.html.thinker = document.getElementById("thinker");
+glob.html.resampButton = document.getElementById("resampButton");
+glob.html.thinker2 = document.getElementById("thinker2");
+glob.html.pathButton = document.getElementById("pathButton");
+
+glob.pathChart.accEr = 3;
+glob.pathChart.accQ = 3;
+glob.pathChart.animDelay = 5;
+glob.pathChart.animStep = 3;
+glob.pathChart.tStep = 2;
+glob.pathChart.tPoints = [0, 50, 100, 150, 200, 250];
+
+
 const DAYS_IN_YEAR = 250;
 const ALFA_95 = -1.645;
 const ALFA_99 = -2.326;
