@@ -24,10 +24,14 @@ import {
     makePortPath
 } from "./funs.js";
 
+
+//-------------Global variables and constants-------------
 let glob = {
     data: {},
     html: {},
-    pathChart: {}
+    chart: {
+        path: {}
+    }
 };
 
 glob.daysYear = 250;
@@ -54,8 +58,15 @@ glob.data.sigma = {};
 glob.data.sigmacc = {};
 glob.data.var95 = {};
 glob.data.var99 = {};
-glob.data.assetTableMtx = {};
+glob.data.assetMatrices = {};
 glob.data.portSample = [];
+
+glob.chart.path.accEr = 3;
+glob.chart.path.accQ = 3;
+glob.chart.path.animDelay = 5;
+glob.chart.path.animStep = 3;
+glob.chart.path.tStep = 2;
+glob.chart.path.tPoints = [0, 50, 100, 150, 200, 250];
 
 glob.html.body  = document.getElementById("body");
 glob.html.loader = document.getElementById("loader");
@@ -77,29 +88,6 @@ glob.html.resampButton = document.getElementById("resampButton");
 glob.html.thinker2 = document.getElementById("thinker2");
 glob.html.pathButton = document.getElementById("pathButton");
 
-glob.pathChart.accEr = 3;
-glob.pathChart.accQ = 3;
-glob.pathChart.animDelay = 5;
-glob.pathChart.animStep = 3;
-glob.pathChart.tStep = 2;
-glob.pathChart.tPoints = [0, 50, 100, 150, 200, 250];
-
-
-const DAYS_IN_YEAR = 250;
-const ALFA_95 = -1.645;
-const ALFA_99 = -2.326;
-const ACCURACY = 2;
-const ACCURACY_ER = 2;
-const ACCURACY_CHART_ER = 3;
-const ACCURACY_CHART_Q = 3;
-const ACCURACY_SHARE = 3;
-const ACCURACY_MC = 0;
-const CHART_ANIMATION_DELAY = 5;
-const CHART_ANIMATION_STEP = 3;
-const CHART_TIME_STEP = 2;
-const SAMPLE_SIZE = 1000;
-const CURRENCIES = ['rub', 'usd', 'eur'];
-const WIDE_SPACE = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
 
 // -----------------Loading google charts------------------------
 google.charts.load('current', {'packages':['corechart'], 'language':'en'});
@@ -121,86 +109,53 @@ firebase.initializeApp(firebaseConfig);
 // ---------------Get database reference-----------------
 const dbRef = firebase.database().ref();
 
-// ---------------Html elements-------------------
-const body  = document.getElementById("body");
-const loader = document.getElementById("loader");
-const updateInfo  = document.getElementById("updateInfo");
-const stockUsBox = document.getElementById("stockUsBox");
-const stockRuBox = document.getElementById("stockRuBox");
-const bondBox = document.getElementById("bondBox");
-const commodityBox = document.getElementById("commodityBox");
-const etfBox = document.getElementById("etfBox");
-const cryptoBox = document.getElementById("cryptoBox");
-const portBox = document.getElementById("portBox");
-const curPick = document.getElementsByName("curPick");
-const targetInput = document.getElementById("targetInput");
-const optButton = document.getElementById("optButton");
-const distChart = document.getElementById("distChart");
-const pathChart = document.getElementById("pathChart");
-const thinker = document.getElementById("thinker");
-const resampButton = document.getElementById("resampButton");
-const thinker2 = document.getElementById("thinker2");
-const pathButton = document.getElementById("pathButton");
-
 // ------------------Main-------------------------
 dbRef.child("data").get().then((snapshot) => {
   
     if (snapshot.exists()) {
-        loader.style.visibility = "hidden";
-        body.style.visibility = "visible";
+        glob.html.loader.style.visibility = "hidden";
+        glob.html.body.style.visibility = "visible";
 
         //--------------getting data--------------
-        updateInfo.innerHTML = "<b>Last update:</b> " + snapshot.child("refresh_time").val();
-        let TICKERS = snapshot.child("tickers").val();
-        let TYPES = snapshot.child("types").val();
-        let NAMES = snapshot.child("names").val();
-        let ER = {};
-        let COV = {};
-        let ERCC = {};
-        let COVCC = {};
-        let SAMPLE = {};
-        let SIGMA = {};
-        let SIGMACC = {};
-        let VAR95 = {};
-        let VAR99 = {};
-        let ASSET_MATRICES = {};
-        let PORT_SAMPLE = [];
+        glob.html.updateInfo.innerHTML = "<b>Last update:</b> " + snapshot.child("refresh_time").val();
+        glob.data.tickers = snapshot.child("tickers").val();
+        glob.data.types = snapshot.child("types").val();
+        glob.data.names = snapshot.child("names").val();
         
-        for (let c of CURRENCIES) {
-            ER[c] = math.round(snapshot.child("er_" + c).val(), ACCURACY_ER);
-            COV[c] = snapshot.child("cov_" + c).val();
-            ERCC[c] = math.round(snapshot.child("ercc_" + c).val(), ACCURACY_ER);            
-            COVCC[c] = snapshot.child("covcc_" + c).val();
-            SAMPLE[c] = makeSample(COVCC[c], SAMPLE_SIZE, true);
-            SIGMA[c] = math.round(math.sqrt(math.diag(COV[c])), ACCURACY);
-            SIGMACC[c] = math.sqrt(math.diag(COVCC[c]));
-            VAR95[c] = math.round(contToSimp(math.add(ERCC[c], math.multiply(SIGMACC[c], ALFA_95))), ACCURACY);
-            VAR99[c] = math.round(contToSimp(math.add(ERCC[c], math.multiply(SIGMACC[c], ALFA_99))), ACCURACY);
-            ASSET_MATRICES[c] = math.transpose([TICKERS, NAMES, SIGMA[c], VAR95[c], VAR99[c], ER[c]]);
+        for (let c of glob.curList) {
+            glob.data.er[c] = math.round(snapshot.child("er_" + c).val(), glob.accEr);
+            glob.data.cov[c] = snapshot.child("cov_" + c).val();
+            glob.data.ercc[c] = math.round(snapshot.child("ercc_" + c).val(), glob.accEr);            
+            glob.data.covcc[c] = snapshot.child("covcc_" + c).val();
+            glob.data.sample[c] = makeSample(glob.data.covcc[c], glob.sampleSize, true);
+            glob.data.sigma[c] = math.round(math.sqrt(math.diag(glob.data.cov[c])), glob.accQ);
+            glob.data.sigmacc[c] = math.sqrt(math.diag(glob.data.covcc[c]));
+            glob.data.var95[c] = math.round(contToSimp(math.add(glob.data.ercc[c], math.multiply(glob.data.sigmacc[c], glob.alfa95))), glob.accQ);
+            glob.data.var99[c] = math.round(contToSimp(math.add(glob.data.ercc[c], math.multiply(glob.data.sigmacc[c], glob.alfa99))), glob.accQ);
+            glob.data.assetMatrices[c] = math.transpose([glob.data.tickers, glob.data.names, glob.data.sigma[c], glob.data.var95[c], glob.data.var99[c], glob.data.er[c]]);
         }
-        let cur = 'rub';
         
         //-----------------building asset tables-------------------
-        let assetHeader = ["Ticker", WIDE_SPACE + "Name" + WIDE_SPACE, "Volatility", "VaR_95", "VaR_99", "Expected return"];
+        let assetHeader = ["Ticker", glob.wideSpace + "Name" + glob.wideSpace, "Volatility", "VaR_95", "VaR_99", "Expected return"];
         let assetAligns = ["center", "left", "right", "right", "right", "right", "right"];
         
         let stockUsTable = new SideTable(assetHeader, "us_stocks", "linked", assetAligns, "US Stocks");
-        stockUsTable.appendMatrix(getRows(ASSET_MATRICES[cur], allIndices(TYPES, "stock_us")));
+        stockUsTable.appendMatrix(getRows(glob.data.assetMatrices[glob.cur], allIndices(glob.data.types, "stock_us")));
 
         let stockRuTable = new SideTable(assetHeader, "ru_stocks", "linked", assetAligns, "RU Stocks");
-        stockRuTable.appendMatrix(getRows(ASSET_MATRICES[cur], allIndices(TYPES, "stock_ru")));
+        stockRuTable.appendMatrix(getRows(glob.data.assetMatrices[glob.cur], allIndices(glob.data.types, "stock_ru")));
         
         let bondTable = new SideTable(assetHeader, "bonds", "linked", assetAligns, "Bonds");
-        bondTable.appendMatrix(getRows(ASSET_MATRICES[cur], allIndices(TYPES, "bond")));
+        bondTable.appendMatrix(getRows(glob.data.assetMatrices[glob.cur], allIndices(glob.data.types, "bond")));
 
         let commodityTable = new SideTable(assetHeader, "commodities", "linked", assetAligns, "Commodities");
-        commodityTable.appendMatrix(getRows(ASSET_MATRICES[cur], allIndices(TYPES, "commodity")));
+        commodityTable.appendMatrix(getRows(glob.data.assetMatrices[glob.cur], allIndices(glob.data.types, "commodity")));
         
         let etfTable = new SideTable(assetHeader, "etfs", "linked", assetAligns, "ETFs");
-        etfTable.appendMatrix(getRows(ASSET_MATRICES[cur], allIndices(TYPES, "etf")));
+        etfTable.appendMatrix(getRows(glob.data.assetMatrices[glob.cur], allIndices(glob.data.types, "etf")));
         
         let cryptoTable = new SideTable(assetHeader, "crypto", "linked", assetAligns, "Crypto");
-        cryptoTable.appendMatrix(getRows(ASSET_MATRICES[cur], allIndices(TYPES, "crypto")));
+        cryptoTable.appendMatrix(getRows(glob.data.assetMatrices[glob.cur], allIndices(glob.data.types, "crypto")));
         
         //-----------------building port table------------------
         let portHeader = ["Ticker", "Money", "Share", "Volatility", "VaR_95", "VaR_99", "Expected return"];
@@ -212,16 +167,16 @@ dbRef.child("data").get().then((snapshot) => {
             if (matrix.length > 1) {
                 //----------------recalc weights-----------------
                 let money = getCols(matrix, 1, false);
-                let w = math.round(math.multiply(money, 1 / math.sum(money)), ACCURACY_SHARE);
+                let w = math.round(math.multiply(money, 1 / math.sum(money)), glob.accShare);
                 matrix = insertCols(matrix, w, 2);
                 
                 //------------------recalc vars-------------------
-                let i = getIndices(TICKERS, colToArr(getCols(matrix, 0, false)));
+                let i = getIndices(glob.data.tickers, colToArr(getCols(matrix, 0, false)));
                 let er = math.divide(colToArr(getCols(matrix, 6, false)), 100);
-                let sigmacc = math.divide(getVals(SIGMACC[cur], i), 100);
+                let sigmacc = math.divide(getVals(glob.data.sigmacc[glob.cur], i), 100);
                 let ercc = math.subtract(math.log(math.add(1, er)), math.divide(math.square(sigmacc), 2));
-                let var95 = math.round(contToSimp(math.multiply(math.add(ercc, math.multiply(sigmacc, ALFA_95)), 100)), ACCURACY);
-                let var99 = math.round(contToSimp(math.multiply(math.add(ercc, math.multiply(sigmacc, ALFA_99)), 100)), ACCURACY);
+                let var95 = math.round(contToSimp(math.multiply(math.add(ercc, math.multiply(sigmacc, glob.alfa95)), 100)), glob.accQ);
+                let var99 = math.round(contToSimp(math.multiply(math.add(ercc, math.multiply(sigmacc, glob.alfa99)), 100)), glob.accQ);
                 matrix = insertCols(matrix, var95, 4);
                 matrix = insertCols(matrix, var99, 5);
                 
@@ -235,7 +190,7 @@ dbRef.child("data").get().then((snapshot) => {
                                  ),
                                  100
                             ),
-                            ACCURACY
+                            glob.accQ
                         );
                 matrix = insertCols(matrix, sigma, 3);
             }
@@ -246,35 +201,35 @@ dbRef.child("data").get().then((snapshot) => {
         //-----------------summarizer--------------------
         let summarizer = function(matrix) {
             let total = ["TOTAL", 0, 0, 0, 0, 0, 0];
-            PORT_SAMPLE = [];
+            glob.data.portSample = [];
             if (matrix.length > 1) {
                 matrix.shift();
                 total[1] = math.sum(math.column(matrix, 1));
                 let money = math.column(matrix, 1);
                 let w = math.multiply(money, 1 / math.sum(money));
-                total[2] = math.round(math.sum(w), ACCURACY_SHARE);
-                let i = getIndices(TICKERS, colToArr(math.column(matrix, 0)));
-                let covcc = math.divide(math.subset(COVCC[cur], math.index(i, i)), 10000);
+                total[2] = math.round(math.sum(w), glob.accShare);
+                let i = getIndices(glob.data.tickers, colToArr(math.column(matrix, 0)));
+                let covcc = math.divide(math.subset(glob.data.covcc[glob.cur], math.index(i, i)), 10000);
                 let er = math.divide(math.column(matrix, 6), 100);
                 let cov = 
                         math.dotMultiply(
                             math.subtract(math.exp(covcc), 1),
                             math.multiply(math.add(1, er), math.transpose(math.add(1, er)))
                         );
-                total[3] = math.round(math.sum(math.multiply(math.sqrt(math.multiply(math.transpose(w), cov, w)), 100)), ACCURACY);
-                total[6] = math.round(math.sum(math.multiply(math.transpose(w), math.column(matrix, 6))), ACCURACY_ER);
+                total[3] = math.round(math.sum(math.multiply(math.sqrt(math.multiply(math.transpose(w), cov, w)), 100)), glob.accQ);
+                total[6] = math.round(math.sum(math.multiply(math.transpose(w), math.column(matrix, 6))), glob.accEr);
                 //Monte Cralo VaR for Port
                 let p = 
                         math.dotMultiply(
                             math.add(1, colToArr(er)),
-                            math.exp(math.divide(math.square(math.divide(getVals(SIGMACC[cur], i), 100)), -2))
+                            math.exp(math.divide(math.square(math.divide(getVals(glob.data.sigmacc[glob.cur], i), 100)), -2))
                         );
-                p = arrToMtx(p, SAMPLE_SIZE);
-                PORT_SAMPLE = math.subset(SAMPLE[cur], math.index(i, math.range(0, SAMPLE_SIZE)));
-                PORT_SAMPLE = math.multiply(math.subtract(math.dotMultiply(PORT_SAMPLE, p), 1), 100);
-                PORT_SAMPLE = math.multiply(math.transpose(w), PORT_SAMPLE)[0];
-                total[4] = "&#8776; " + math.round(math.quantileSeq(PORT_SAMPLE, 0.05), ACCURACY_MC);
-                total[5] = "&#8776; " + math.round(math.quantileSeq(PORT_SAMPLE, 0.01), ACCURACY_MC);
+                p = arrToMtx(p, glob.sampleSize);
+                glob.data.portSample = math.subset(glob.data.sample[glob.cur], math.index(i, math.range(0, glob.sampleSize)));
+                glob.data.portSample = math.multiply(math.subtract(math.dotMultiply(glob.data.portSample, p), 1), 100);
+                glob.data.portSample = math.multiply(math.transpose(w), glob.data.portSample)[0];
+                total[4] = "&#8776; " + math.round(math.quantileSeq(glob.data.portSample, 0.05), glob.accQTotal);
+                total[5] = "&#8776; " + math.round(math.quantileSeq(glob.data.portSample, 0.01), glob.accQTotal);
             }
             
             document.dispatchEvent(new Event("summarized"));
@@ -300,14 +255,14 @@ dbRef.child("data").get().then((snapshot) => {
             return r;
         };
         let portToAsset = function(row) {
-            let i = TICKERS.indexOf(row[0]);
+            let i = glob.data.tickers.indexOf(row[0]);
             let r = [];
-            r.push(TICKERS[i]);
-            r.push(NAMES[i]);
-            r.push(SIGMA[cur][i]);
-            r.push(VAR95[cur][i]);
-            r.push(VAR99[cur][i]);
-            r.push(ER[cur][i]);
+            r.push(glob.data.tickers[i]);
+            r.push(glob.data.names[i]);
+            r.push(glob.data.sigma[glob.cur][i]);
+            r.push(glob.data.var95[glob.cur][i]);
+            r.push(glob.data.var99[glob.cur][i]);
+            r.push(glob.data.er[glob.cur][i]);
             return r;
         };
         
@@ -319,29 +274,29 @@ dbRef.child("data").get().then((snapshot) => {
         portTable.link(cryptoTable, portToAsset, assetToPort);
         
         //------------------appending tables to html--------------------
-        stockUsBox.appendChild(stockUsTable.table);
-        stockRuBox.appendChild(stockRuTable.table);
-        bondBox.appendChild(bondTable.table);
-        commodityBox.appendChild(commodityTable.table);
-        etfBox.appendChild(etfTable.table);
-        cryptoBox.appendChild(cryptoTable.table);
-        portBox.appendChild(portTable.table);
+        glob.html.stockUsBox.appendChild(stockUsTable.table);
+        glob.html.stockRuBox.appendChild(stockRuTable.table);
+        glob.html.bondBox.appendChild(bondTable.table);
+        glob.html.commodityBox.appendChild(commodityTable.table);
+        glob.html.etfBox.appendChild(etfTable.table);
+        glob.html.cryptoBox.appendChild(cryptoTable.table);
+        glob.html.portBox.appendChild(portTable.table);
         
         //-------------------changing currency----------------------
         let refreshTableCur = function(table, iTo) {
             if (table.matrix.length > 1) {
-                let jFrom = getIndices(TICKERS, colToArr(getCols(table.matrix, 0, false)));
+                let jFrom = getIndices(glob.data.tickers, colToArr(getCols(table.matrix, 0, false)));
                 if (jFrom.length > 0) {
                     let iFrom = [2, 3, 4, 5];
                     let jTo = math.range(1, table.matrix.length);
-                    table.matrix = insert(ASSET_MATRICES[cur], table.matrix, math.index(jFrom, iFrom), math.index(jTo, iTo));
+                    table.matrix = insert(glob.data.assetMatrices[glob.cur], table.matrix, math.index(jFrom, iFrom), math.index(jTo, iTo));
                     table.syncTableWithMatrix();
                 }
             }
         };
 
-        curPick.forEach((elem) => elem.addEventListener("click", function(event) {
-            cur = event.target.value;
+        glob.html.curPick.forEach((elem) => elem.addEventListener("click", function(event) {
+            glob.cur = event.target.value;
             refreshTableCur(stockUsTable, [2, 3, 4, 5]);
             refreshTableCur(stockRuTable, [2, 3, 4, 5]);
             refreshTableCur(bondTable, [2, 3, 4, 5]);
@@ -356,8 +311,8 @@ dbRef.child("data").get().then((snapshot) => {
         let optimize = function() {
             if (portTable.matrix.length > 2) {
                 let matrix = lessHeader(portTable.matrix);
-                let i = getIndices(TICKERS, colToArr(math.column(matrix, 0)));
-                let covcc = math.divide(math.subset(COVCC[cur], math.index(i, i)), 10000);
+                let i = getIndices(glob.data.tickers, colToArr(math.column(matrix, 0)));
+                let covcc = math.divide(math.subset(glob.data.covcc[glob.cur], math.index(i, i)), 10000);
                 let er = math.divide(math.column(matrix, 6), 100);
                 let cov = 
                         math.dotMultiply(
@@ -366,12 +321,12 @@ dbRef.child("data").get().then((snapshot) => {
                         );
                 er = math.multiply(er, 100);
                 cov = math.multiply(cov, 10000);
-                let rho = Number(targetInput.value);
+                let rho = Number(glob.html.targetInput.value);
                 if (!isNaN(rho)) {
                     let port = new Port(cov, er, rho);
                     
-                    optButton.disabled = true;
-                    thinker.style.visibility = "visible";
+                    glob.html.optButton.disabled = true;
+                    glob.html.thinker.style.visibility = "visible";
 
                     window.setTimeout(function() {
                         port.optimize();
@@ -381,22 +336,22 @@ dbRef.child("data").get().then((snapshot) => {
                         portTable.matrix = insert(money, portTable.matrix, indicesFrom, indicesTo);
                         portTable.recalculate();
                         portTable.refreshSummary();
-                        thinker.style.visibility = "hidden";
-                        optButton.disabled = false;
+                        glob.html.thinker.style.visibility = "hidden";
+                        glob.html.optButton.disabled = false;
                     }, 1);
                     
                 } else {
-                    targetInput.value = "NaN";
+                    glob.html.targetInput.value = "NaN";
                 }
             }
         };
         
-        optButton.addEventListener("click", optimize);
+        glob.html.optButton.addEventListener("click", optimize);
 
         document.addEventListener("keydown", function(event) {
             if (event["keyCode"] === 13) {
-                if (document.activeElement === targetInput) {
-                    targetInput.blur();
+                if (document.activeElement === glob.html.targetInput) {
+                    glob.html.targetInput.blur();
                     optimize();
                 }
             }
@@ -450,10 +405,10 @@ dbRef.child("data").get().then((snapshot) => {
 
             };
 
-            let chart = new google.visualization.ColumnChart(distChart);
+            let chart = new google.visualization.ColumnChart(glob.html.distChart);
 
             function draw() {
-                let data = makeHistogramData(PORT_SAMPLE, -100, 200, 5);
+                let data = makeHistogramData(glob.data.portSample, -100, 200, 5);
                 let dataTable = new google.visualization.DataTable();
                 dataTable.addColumn('number', 'x');
                 dataTable.addColumn('number', 'y');
@@ -468,43 +423,41 @@ dbRef.child("data").get().then((snapshot) => {
             let title = document.createElement('div');
             title.className = 'chartTitle';
             title.innerHTML = 'Distribution of returns';
-            distChart.childNodes[0].childNodes[0].append(title);
+            glob.html.distChart.childNodes[0].childNodes[0].append(title);
             
             document.addEventListener("summarized", draw);
 
         }
         
         //-----------------new sample----------------
-        resampButton.addEventListener("click", function() {
+        glob.html.resampButton.addEventListener("click", function() {
             if (portTable.matrix.length > 1) {
-                resampButton.disabled = true;
-                thinker2.style.visibility = "visible";
+                glob.html.resampButton.disabled = true;
+                glob.html.thinker2.style.visibility = "visible";
                 window.setTimeout(function() {
-                    for (let c of CURRENCIES) {
-                        SAMPLE[c] = makeSample(COVCC[c], SAMPLE_SIZE, true);
+                    for (let c of glob.curList) {
+                        glob.data.sample[c] = makeSample(glob.data.covcc[c], glob.sampleSize, true);
                     };
                     portTable.refreshSummary();
-                    thinker2.style.visibility = "hidden";
-                    resampButton.disabled = false;
+                    glob.html.thinker2.style.visibility = "hidden";
+                    glob.html.resampButton.disabled = false;
                 }, 1);
             }
         });
         
         //-----------------path chart---------------------
-        const tPoints = [0, 50, 100, 150, 200, 250];
-        
         google.charts.setOnLoadCallback(initPath);
         
         function initPath() {
             
-            let chart = new google.visualization.ComboChart(pathChart);
+            let chart = new google.visualization.ComboChart(glob.html.pathChart);
             
             let options0 = {
 
                 hAxis: {    
                     title: 'days',
                     titleTextStyle: { italic: false },
-                    viewWindow: { min: 0, max: tPoints[tPoints.length - 1] * 1.01 }
+                    viewWindow: { min: 0, max: glob.chart.path.tPoints[glob.chart.path.tPoints.length - 1] * 1.01 }
                 },
 
                 vAxis: {
@@ -543,7 +496,7 @@ dbRef.child("data").get().then((snapshot) => {
             let options = {...options0};
             options.intervals = { 
                 style: 'bars',
-                barWidth: tPoints[tPoints.length - 1] / CHART_TIME_STEP / 25 * 1.2,
+                barWidth: glob.chart.path.tPoints[glob.chart.path.tPoints.length - 1] / glob.chart.path.tStep / 25 * 1.2,
                 lineWidth: 2
             };
             delete options.animation;
@@ -555,29 +508,29 @@ dbRef.child("data").get().then((snapshot) => {
                     let er = colToArr(math.divide(math.column(matrix, 6), 100));
                     let money = math.column(matrix, 1);
                     let w = colToArr(math.multiply(money, 1 / math.sum(money)));
-                    let qcc5 = math.log(1 + math.quantileSeq(PORT_SAMPLE, 0.05) / 100);
-                    let qcc95 = math.log(1 + math.quantileSeq(PORT_SAMPLE, 0.95) / 100);
-                    let indices = getIndices(TICKERS, colToArr(math.column(matrix, 0)));
-                    let sigmacc = math.divide(getVals(SIGMACC[cur], indices), 100);
+                    let qcc5 = math.log(1 + math.quantileSeq(glob.data.portSample, 0.05) / 100);
+                    let qcc95 = math.log(1 + math.quantileSeq(glob.data.portSample, 0.95) / 100);
+                    let indices = getIndices(glob.data.tickers, colToArr(math.column(matrix, 0)));
+                    let sigmacc = math.divide(getVals(glob.data.sigmacc[glob.cur], indices), 100);
                     let ercc = math.add(math.log(math.add(1, er)), math.divide(math.square(sigmacc), -2));
                     let erccAvg = math.sum(math.dotMultiply(ercc, w));
                     d = [
-                        tPoints,
-                        math.round(getPortErForTimes(er, w,  DAYS_IN_YEAR, tPoints), ACCURACY_CHART_ER),
-                        math.round(getQForTimes(qcc5, erccAvg, DAYS_IN_YEAR, tPoints), ACCURACY_CHART_Q),
-                        math.round(getQForTimes(qcc95, erccAvg, DAYS_IN_YEAR, tPoints), ACCURACY_CHART_Q)
+                        glob.chart.path.tPoints,
+                        math.round(getPortErForTimes(er, w,  glob.daysYear, glob.chart.path.tPoints), glob.chart.path.accEr),
+                        math.round(getQForTimes(qcc5, erccAvg, glob.daysYear, glob.chart.path.tPoints), glob.chart.path.accQ),
+                        math.round(getQForTimes(qcc95, erccAvg, glob.daysYear, glob.chart.path.tPoints), glob.chart.path.accQ)
                     ];
                     let tips = [];
-                    for (let i = 0; i < tPoints.length; i++) {
+                    for (let i = 0; i < glob.chart.path.tPoints.length; i++) {
                         tips.push("expected return " + d[1][i] + "\n90% in [" + d[2][i] + ", " + d[3][i] + "]");
                     }
                     d.push(tips);
-                    let nullArr = new Array(tPoints.length).fill(null);
+                    let nullArr = new Array(glob.chart.path.tPoints.length).fill(null);
                     d.splice(d.length, 0, nullArr, nullArr);
                     d = math.transpose(d);
                     if (isPath) {
-                        let covcc = math.divide(math.subset(COVCC[cur], math.index(indices, indices)), 10000);
-                        let path = makePortPath(w, ercc, covcc, DAYS_IN_YEAR, tPoints[tPoints.length - 1], CHART_TIME_STEP);
+                        let covcc = math.divide(math.subset(glob.data.covcc[glob.cur], math.index(indices, indices)), 10000);
+                        let path = makePortPath(w, ercc, covcc, glob.daysYear, glob.chart.path.tPoints[glob.chart.path.tPoints.length - 1], glob.chart.path.tStep);
                         d.push([0, null, null, null, null, 0, 'color: green']);
                         for (let i = 0; i < path.r.length; i++) {
                             if (path.r[i] >= 0) d.push([path.t[i], null, null, null, null, path.r[i], 'color: green']);
@@ -609,20 +562,20 @@ dbRef.child("data").get().then((snapshot) => {
             
             function draw() {
                 if (portTable.matrix.length > 1) {
-                    pathButton.disabled = true;
+                    glob.html.pathButton.disabled = true;
                     let d = makeData(true);
                     let data = makeChartData();
-                    for (let i = 0; i < tPoints.length; i++) data.addRows([d[i]]);
+                    for (let i = 0; i < glob.chart.path.tPoints.length; i++) data.addRows([d[i]]);
                     function go(j, k) {
                         if (k > d.length) k = d.length;
                         for (let i = j; i < k; i++) data.addRows([d[i]]);
                         chart.draw(data, options);
                         setTimeout(function() {    
-                            if (k < d.length) go(k, k + CHART_ANIMATION_STEP);
-                            else pathButton.disabled = false;
-                        }, CHART_ANIMATION_DELAY);
+                            if (k < d.length) go(k, k + glob.chart.path.animStep);
+                            else glob.html.pathButton.disabled = false;
+                        }, glob.chart.path.animDelay);
                     }
-                    go(tPoints.length, tPoints.length + CHART_ANIMATION_STEP);
+                    go(glob.chart.path.tPoints.length, glob.chart.path.tPoints.length + glob.chart.path.animStep);
                 }
             }
             
@@ -631,10 +584,10 @@ dbRef.child("data").get().then((snapshot) => {
             let title = document.createElement('div');
             title.className = 'chartTitle';
             title.innerHTML = 'Portfolio path';
-            pathChart.childNodes[0].childNodes[0].append(title);
+            glob.html.pathChart.childNodes[0].childNodes[0].append(title);
             
             document.addEventListener("summarized", draw0);
-            pathButton.addEventListener("click", draw);
+            glob.html.pathButton.addEventListener("click", draw);
             
         }
         
