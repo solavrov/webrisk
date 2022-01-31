@@ -129,8 +129,8 @@ class Matrix {
         return new Matrix(math.subset(this.arr, math.index(irows, icols), b.arr));
     }
     
-    round(n=0) {
-        return new Matrix(math.round(this.arr, n));
+    round(digits=0) {
+        return new Matrix(math.round(this.arr, digits));
     }
     
     exp() {
@@ -252,11 +252,12 @@ class Matrix {
         return indices;
     }
     
-    roundw(n, icol=0) {
-        let r = this.cols(icol).t().round(n);
-        r.arr[0][r.arr[0].indexOf(r.max())] += math.round(1 - r.sum(), n);
+    roundw(digits, icol=0) {
+        let r = this.cols(icol).t().round(digits);
+        r.arr[0][r.arr[0].indexOf(r.max())] += math.round(1 - r.sum(), digits);
         return this.replace(r.t(), icol);
     }
+    
     
     
 }
