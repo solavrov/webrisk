@@ -224,7 +224,7 @@ class Matrix {
         return new Matrix(c);
     }
     
-    firstIndicesOf(vals, irow=0) {
+    fiof(vals, irow=0) {
         let indices = [];
         if (Array.isArray(vals)) {
             for (let v of vals) {
@@ -236,7 +236,7 @@ class Matrix {
         return indices;
     }
     
-    valsOf(indices, irow=0) {
+    vof(indices, irow=0) {
         let vals = [];
         indices.forEach(i => {
             if (i >=0) vals.push(this.arr[irow][i]);
@@ -244,13 +244,20 @@ class Matrix {
         return new Matrix(vals);
     }
     
-    allIndicesOf(val, irow=0) {
+    aiof(val, irow=0) {
         let indices = [];
         for(let i = 0; i < this.ncol(); i++)
             if (this.arr[irow][i] === val)
                 indices.push(i);
         return indices;
     }
+    
+    roundw(n, icol=0) {
+        let r = this.cols(icol).t().round(n);
+        r.arr[0][r.arr[0].indexOf(r.max())] += math.round(1 - r.sum(), n);
+        return this.replace(r.t(), icol);
+    }
+    
     
 }
 
