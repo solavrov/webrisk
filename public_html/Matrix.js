@@ -216,6 +216,34 @@ class Matrix {
         return new Matrix(c);
     }
     
+    firstIndicesOf(vals, irow=0) {
+        let indices = [];
+        if (Array.isArray(vals)) {
+            for (let v of vals) {
+                indices.push(this.arr[irow].indexOf(v));
+            }
+        } else {
+            indices.push(this.arr[irow].indexOf(vals));
+        }
+        return indices;
+    }
+    
+    valsOf(indices, irow=0) {
+        let vals = [];
+        indices.forEach(i => {
+            if (i >=0) vals.push(this.arr[irow][i]);
+        });
+        return new Matrix(vals);
+    }
+    
+    allIndicesOf(val, irow=0) {
+        let indices = [];
+        for(let i = 0; i < this.ncol(); i++)
+            if (this.arr[irow][i] === val)
+                indices.push(i);
+        return indices;
+    }
+    
 }
 
 

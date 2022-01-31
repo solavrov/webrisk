@@ -3,6 +3,7 @@
 import {SideTable} from "./SideTable.js";
 import {CentralTable} from "./CentralTable.js";
 import {Port} from "./Port.js";
+import {Matrix} from "./Matrix.js";
 import {
     getIndices, 
     allIndices, 
