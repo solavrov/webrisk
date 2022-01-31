@@ -51,7 +51,7 @@ class Matrix {
     }
     
     decap() {
-        this.arr.splice(0, 1);
+        return new Matrix(this.arr.slice(1));
     }
     
     nrow() {
@@ -187,6 +187,14 @@ class Matrix {
     
     max() {
         return math.max(this.arr);
+    }
+    
+    toCC() {
+        return this.mult(0.01).exp().minus(1).mult(100);
+    }
+    
+    toSimp() {
+        return this.mult(0.01).plus(1).log().mult(100);
     }
     
     //for summetric positively defined matrices only
