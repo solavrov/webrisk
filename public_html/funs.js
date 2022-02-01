@@ -1,5 +1,7 @@
 /* global math */
 
+import {Matrix} from "./Matrix.js";
+
 export {
     getIndices, 
     allIndices, 
