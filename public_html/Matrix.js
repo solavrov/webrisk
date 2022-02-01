@@ -155,9 +155,15 @@ class Matrix {
         return this.sub(math.range(0, this.nrow()), icols);
     }
     
-    //replace values of this with values of b
-    replace(b, icols, irows=math.range(0, b.arr.length)._data) {
+    //plug into this values of b
+    plug(b, irows, icols) {
         return new Matrix(math.subset(this.arr, math.index(irows, icols), b.arr));
+    }
+    
+    plugc(b, icols, noHead=true) {
+        let i = 0;
+        if (noHead) i = 1;
+        return this.plug(b, math.range(i, b.arr.length + i)._data, icols);
     }
     
     insRow(row, irow) {
