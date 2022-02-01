@@ -157,7 +157,9 @@ class Matrix {
     
     //plug into this values of b
     plug(b, irows, icols) {
-        return new Matrix(math.subset(this.arr, math.index(irows, icols), b.arr));
+        let c = b.arr;
+        if (b.nrow() === 1 && b.ncol() === 1) c = b.arr[0][0];
+        return new Matrix(math.subset(this.arr, math.index(irows, icols), c));
     }
     
     plugc(b, icols, noHead=true) {
