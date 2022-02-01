@@ -323,6 +323,21 @@ class Matrix {
         return c;
     }
     
+    cumsum() {
+        let cs = function(x) {
+            let x2 = [];
+            for (let i = 0; i < x.length; i++) {
+                if (i === 0) x2.push(x[0]);
+                else x2.push(x2[i-1] + x[i]);
+            }
+            return x2;
+        };
+        let b = [];
+        for (let i = 0; i < this.nrow(); i++) {
+            b.push(cs(this.arr[i]));
+        }
+        return new Matrix(b);
+    }
+    
 }
-
 
