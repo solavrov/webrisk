@@ -20,8 +20,17 @@ class Matrix {
         return new Matrix(math.zeros(nrow, ncol)._data);
     }
     
-    static id(nrow) {
-        return new Matrix(math.identity(nrow)._data);
+    static id(n) {
+        return new Matrix(math.identity(n)._data);
+    }
+    
+    static diag(row) {
+        let n = row.arr[0].length;
+        let b = Matrix.zeros(n);
+        for (let i = 0; i < n; i++) {
+            b.arr[i][i] = row.arr[0][i];
+        }
+        return b;
     }
     
     static runif(nrow, ncol) {
@@ -38,6 +47,24 @@ class Matrix {
             }
         }
         return new Matrix(r);
+    }
+    
+    static rPosDef(n, isCross=false) {
+        let a;
+        let eg = -1;
+        while (eg <= 0) {
+            let d = Matrix.diag(Matrix.runif(1,n));
+            let y = Matrix.runif(n,n);
+            a = y.mult(d).mult(y.t()).mult(100).round();
+            eg = a.eigs().min();
+        }
+        if (isCross) {
+            let m = math.floor(math.random() * (n + 1));
+            a.arr.splice(m, 0, Array(n).fill(0));
+            a = a.t();
+            a.arr.splice(m, 0, Array(n + 1).fill(0));
+        }
+        return a;
     }
     
     static rnorm(nrow, ncol) {
@@ -112,6 +139,10 @@ class Matrix {
         return new Matrix(math.inv(this.arr));
     }
     
+    eigs() {
+        return new Matrix(math.eigs(this.arr).values);
+    }
+    
     sub(irows, icols=irows) {
         return new Matrix(math.subset(this.arr, math.index(irows, icols)));
     }
@@ -127,6 +158,14 @@ class Matrix {
     //replace values of this with values of b
     replace(b, icols, irows=math.range(0, b.arr.length)._data) {
         return new Matrix(math.subset(this.arr, math.index(irows, icols), b.arr));
+    }
+    
+    insRow(row, irow) {
+        let b = this.clone();
+        if (irow >= 0) {
+            b.arr.splice(irow, 0, row.arr[0]);
+        }
+        return b;
     }
     
     round(digits=0) {
@@ -258,7 +297,31 @@ class Matrix {
         return this.replace(r.t(), icol);
     }
     
+    sample(n) {
+        let i = this.diag().fiof(0)[0];
+        let cov = this.cross(i);
+        let omega = cov.chol();
+        let x = Matrix.rnorm(cov.nrow(), n);
+        return omega.mult(x).insRow(Matrix.zeros(1, n), i);
+    }
     
+    cov() {
+        let cov = function(x, y) {
+            let mx = math.mean(x);
+            let my = math.mean(y);
+            let c = 0;
+            for (let i = 0; i < x.length; i++) c += (x[i] - mx) * (y[i] - my);
+            return (c / (x.length - 1));
+        };
+        let n = this.nrow();
+        let c = Matrix.zeros(n);
+        for (let i = 0; i < n; i++) {
+            for (let j = i; j < n; j++) {
+                c.arr[j][i] = c.arr[i][j] = cov(this.arr[i], this.arr[j]);
+            }
+        }
+        return c;
+    }
     
 }
 
