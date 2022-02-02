@@ -247,11 +247,11 @@ class Matrix {
     }
     
     toCC() {
-        return this.mult(0.01).exp().minus(1).mult(100);
+        return this.mult(0.01).plus(1).log().mult(100);
     }
     
     toSimp() {
-        return this.mult(0.01).plus(1).log().mult(100);
+        return this.mult(0.01).exp().minus(1).mult(100);
     }
     
     //for summetric positively defined matrices only
