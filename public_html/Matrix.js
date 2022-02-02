@@ -95,6 +95,10 @@ class Matrix {
         return x;
     }
     
+    val(irow=0, icol=0) {
+        return this.arr[irow][icol];
+    }
+    
     t() {
         return new Matrix(math.transpose(this.arr));
     }
@@ -267,6 +271,10 @@ class Matrix {
             }
         }
         return new Matrix(l);
+    }
+    
+    gram() {
+        return new Matrix(this.t().mult(this).arr);
     }
     
     //less cross of index i
