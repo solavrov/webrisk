@@ -165,37 +165,21 @@ dbRef.child("data").get().then((snapshot) => {
         
         //-----------------recalculator-----------------------
         let recalculator = function(matrix) {
-            if (matrix.length > 1) {
-                //----------------recalc weights-----------------
-                let money = getCols(matrix, 1, false);
-                let w = math.round(math.multiply(money, 1 / math.sum(money)), glob.accShare);
-                matrix = insertCols(matrix, w, 2);
-                
-                //------------------recalc vars-------------------
-                let i = getIndices(glob.data.tickers, colToArr(getCols(matrix, 0, false)));
-                let er = math.divide(colToArr(getCols(matrix, 6, false)), 100);
-                let sigmacc = math.divide(getVals(glob.data.sigmacc[glob.cur], i), 100);
-                let ercc = math.subtract(math.log(math.add(1, er)), math.divide(math.square(sigmacc), 2));
-                let var95 = math.round(contToSimp(math.multiply(math.add(ercc, math.multiply(sigmacc, glob.alfa95)), 100)), glob.accQ);
-                let var99 = math.round(contToSimp(math.multiply(math.add(ercc, math.multiply(sigmacc, glob.alfa99)), 100)), glob.accQ);
-                matrix = insertCols(matrix, var95, 4);
-                matrix = insertCols(matrix, var99, 5);
-                
-                //---------------------recalc vols-------------------
-                let sigma = 
-                        math.round(
-                            math.multiply(
-                                 math.dotMultiply(
-                                    math.sqrt(math.subtract(math.exp(math.square(sigmacc)), 1)), 
-                                    math.add(1, er)
-                                 ),
-                                 100
-                            ),
-                            glob.accQ
-                        );
-                matrix = insertCols(matrix, sigma, 3);
+            matrix = new Matrix(matrix);
+            if (matrix.nrow() > 1) {
+                let money = matrix.decap().cols(1);
+                let w = money.mult(1 / money.sum()).round(glob.accShare);
+                let tickets = new Matrix(glob.data.tickers);
+                let indices = tickets.fiof(matrix.decap().cols(0));
+                let er = matrix.cols(6).decap().mult(0.01);
+                let sigmacc = new Matrix(glob.data.sigmacc[glob.cur]).vof(indices).mult(0.01).t();
+                let ercc = er.plus(1).log().minus(sigmacc.sq().mult(0.5));
+                let var95 = ercc.plus(sigmacc.mult(glob.alfa95)).mult(100).toSimp().round(glob.accQ);
+                let var99 = ercc.plus(sigmacc.mult(glob.alfa99)).mult(100).toSimp().round(glob.accQ);
+                let sigma = sigmacc.sq().exp().minus(1).sqrt().dot(er.plus(1)).mult(100).round(glob.accQ);
+                matrix = matrix.plugc(w, 2).plugc(sigma, 3).plugc(var95, 4).plugc(var99, 5);
             }
-            return matrix;
+            return matrix.arr;
         };
         portTable.addRecalculator(recalculator);
         
