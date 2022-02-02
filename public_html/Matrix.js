@@ -89,6 +89,12 @@ class Matrix {
         return this.arr[0].length;
     }
     
+    flat() {
+        let x = [];
+        for (let row of this.arr) for (let val of row) x.push(val);
+        return x;
+    }
+    
     t() {
         return new Matrix(math.transpose(this.arr));
     }
@@ -196,6 +202,10 @@ class Matrix {
         return new Matrix(math.dotPow(this.arr, p));
     }
     
+    sq() {
+        return new Matrix(math.square(this.arr));
+    }
+    
     sqrt() {
         return new Matrix(math.sqrt(this.arr));
     }
@@ -271,14 +281,15 @@ class Matrix {
         return new Matrix(c);
     }
     
-    fiof(vals, irow=0) {
+    fiof(b, irow=0) {
+        b = b.flat();
         let indices = [];
-        if (Array.isArray(vals)) {
-            for (let v of vals) {
+        if (Array.isArray(b)) {
+            for (let v of b) {
                 indices.push(this.arr[irow].indexOf(v));
             }
         } else {
-            indices.push(this.arr[irow].indexOf(vals));
+            indices.push(this.arr[irow].indexOf(b));
         }
         return indices;
     }
