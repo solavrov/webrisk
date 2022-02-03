@@ -169,10 +169,9 @@ dbRef.child("data").get().then((snapshot) => {
             if (matrix.nrow() > 1) {
                 let money = matrix.decap().cols(1);
                 let w = money.mult(1 / money.sum()).round(glob.accShare);
-                let tickets = new Matrix(glob.data.tickers);
-                let indices = tickets.fiof(matrix.decap().cols(0));
+                let indices = new Matrix(glob.data.tickers).fiof(matrix.decap().cols(0));
                 let er = matrix.cols(6).decap().mult(0.01);
-                let sigmacc = new Matrix(glob.data.sigmacc[glob.cur]).vof(indices).mult(0.01).t();
+                let sigmacc = new Matrix(glob.data.sigmacc[glob.cur]).t().rows(indices).mult(0.01);
                 let ercc = er.plus(1).log().minus(sigmacc.sq().mult(0.5));
                 let var95 = ercc.plus(sigmacc.mult(glob.alfa95)).mult(100).toSimp().round(glob.accQ);
                 let var99 = ercc.plus(sigmacc.mult(glob.alfa99)).mult(100).toSimp().round(glob.accQ);
@@ -186,39 +185,26 @@ dbRef.child("data").get().then((snapshot) => {
         //-----------------summarizer--------------------
         let summarizer = function(matrix) {
             let total = ["TOTAL", 0, 0, 0, 0, 0, 0];
-            glob.data.portSample = [];
             if (matrix.length > 1) {
-                matrix.shift();
-                total[1] = math.sum(math.column(matrix, 1));
-                let money = math.column(matrix, 1);
-                let w = math.multiply(money, 1 / math.sum(money));
-                total[2] = math.round(math.sum(w), glob.accShare);
-                let i = getIndices(glob.data.tickers, colToArr(math.column(matrix, 0)));
-                let covcc = math.divide(math.subset(glob.data.covcc[glob.cur], math.index(i, i)), 10000);
-                let er = math.divide(math.column(matrix, 6), 100);
-                let cov = 
-                        math.dotMultiply(
-                            math.subtract(math.exp(covcc), 1),
-                            math.multiply(math.add(1, er), math.transpose(math.add(1, er)))
-                        );
-                total[3] = math.round(math.sum(math.multiply(math.sqrt(math.multiply(math.transpose(w), cov, w)), 100)), glob.accQ);
-                total[6] = math.round(math.sum(math.multiply(math.transpose(w), math.column(matrix, 6))), glob.accEr);
-                //Monte Cralo VaR for Port
-                let p = 
-                        math.dotMultiply(
-                            math.add(1, colToArr(er)),
-                            math.exp(math.divide(math.square(math.divide(getVals(glob.data.sigmacc[glob.cur], i), 100)), -2))
-                        );
-                p = arrToMtx(p, glob.sampleSize);
-                glob.data.portSample = math.subset(glob.data.sample[glob.cur], math.index(i, math.range(0, glob.sampleSize)));
-                glob.data.portSample = math.multiply(math.subtract(math.dotMultiply(glob.data.portSample, p), 1), 100);
-                glob.data.portSample = math.multiply(math.transpose(w), glob.data.portSample)[0];
-                total[4] = "&#8776; " + math.round(math.quantileSeq(glob.data.portSample, 0.05), glob.accQTotal);
-                total[5] = "&#8776; " + math.round(math.quantileSeq(glob.data.portSample, 0.01), glob.accQTotal);
+                matrix = new Matrix(matrix).decap();
+                total[1] = matrix.cols(1).sum();
+                let money = matrix.cols(1);
+                let w = money.mult(1 / money.sum());
+                total[2] = math.round(w.sum(), glob.accShare);
+                let indices = new Matrix(glob.data.tickers).fiof(matrix.cols(0));
+                let covcc = new Matrix(glob.data.covcc[glob.cur]).sub(indices).mult(0.0001);
+                let er = matrix.cols(6).mult(0.01);
+                let cov = covcc.exp().minus(1).dot(er.plus(1).t().gram());
+                total[3] = w.t().mult(cov).mult(w).sqrt().mult(100).round(glob.accQ).val();
+                total[6] = w.t().mult(er).mult(100).round(glob.accEr).val();                
+                let sample = new Matrix(glob.data.sample[glob.cur]).rows(indices);
+                let simpRatesSample = (er.plus(1)).dot(covcc.diag().mult(-0.5).exp()).breed(glob.sampleSize).dot(sample).minus(1).mult(100);
+                let portSample = w.t().mult(simpRatesSample);
+                total[4] = "&#8776; " + math.round(portSample.q(0.05),glob.accQTotal);
+                total[5] = "&#8776; " + math.round(portSample.q(0.01),glob.accQTotal);
+                glob.data.portSample = portSample.arr[0];
             }
-            
             document.dispatchEvent(new Event("summarized"));
-            
             return total;
         };    
         portTable.addSummary(summarizer, "sum", ["black", "black", "black", "black", "red", "red", "green"]);
