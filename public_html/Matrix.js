@@ -204,7 +204,7 @@ class Matrix {
     }
         
     diag() {
-        return new Matrix(math.diag(this.arr));
+        return new Matrix(math.diag(this.arr)).t();
     }
     
     pow(p) {
