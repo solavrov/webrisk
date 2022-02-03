@@ -102,7 +102,7 @@ class Matrix {
     t() {
         return new Matrix(math.transpose(this.arr));
     }
-        
+            
     plus(b) {
         let c = null;
         if (b.constructor.name === "Matrix") {
@@ -112,6 +112,8 @@ class Matrix {
                 c = new Matrix(c);
             } else if (b.ncol() === 1) {
                 c = this.t().plus(b.t()).t();
+            } else if (this.nrow() === 1 || this.ncol() === 1) {
+                c = b.plus(this);
             } else {
                 c = new Matrix(math.add(this.arr, b.arr));
             }
