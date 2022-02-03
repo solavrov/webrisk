@@ -121,7 +121,7 @@ class Matrix {
         } else if (typeof(b) === "number") {
             c = new Matrix(math.add(this.arr, b));
         } else {
-            throw new Error(">>>Matrix plus method error<<<");
+            throw new Error(">>>Matrix plus() method error<<<");
         }
         return c;
     }
@@ -307,14 +307,6 @@ class Matrix {
         return indices;
     }
     
-    vof(indices, irow=0) {
-        let vals = [];
-        indices.forEach(i => {
-            if (i >=0) vals.push(this.arr[irow][i]);
-        });
-        return new Matrix(vals);
-    }
-    
     aiof(val, irow=0) {
         let indices = [];
         for(let i = 0; i < this.ncol(); i++)
@@ -369,6 +361,10 @@ class Matrix {
             b.push(cs(this.arr[i]));
         }
         return new Matrix(b);
+    }
+    
+    breed(n, icol=0) {
+        return this.cols(icol).plus(Matrix.zeros(this.nrow(), n));
     }
     
 }
