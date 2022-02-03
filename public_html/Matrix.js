@@ -104,21 +104,24 @@ class Matrix {
     }
             
     plus(b) {
-        let c = null;
+        let c = [];
         if (b.constructor.name === "Matrix") {
-            if (b.nrow() === 1) {
-                c = [];
+            if (b.nrow() === 1 && b.ncol() === this.ncol()) {
                 this.arr.forEach((row) => c.push(math.add(row, b.arr[0])));
                 c = new Matrix(c);
-            } else if (b.ncol() === 1) {
+            } else if (b.ncol() === 1 && b.nrow() === this.nrow()) {
                 c = this.t().plus(b.t()).t();
-            } else if (this.nrow() === 1 || this.ncol() === 1) {
+            } else if (this.nrow() === 1 && b.ncol() === this.ncol()) {
                 c = b.plus(this);
+            } else if (this.ncol() === 1 && b.nrow() === this.nrow()) {
+                c = b.t().plus(this.t()).t();
             } else {
                 c = new Matrix(math.add(this.arr, b.arr));
             }
         } else if (typeof(b) === "number") {
             c = new Matrix(math.add(this.arr, b));
+        } else {
+            throw new Error(">>>Matrix plus method error<<<");
         }
         return c;
     }
