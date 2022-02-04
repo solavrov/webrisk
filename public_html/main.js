@@ -254,15 +254,14 @@ dbRef.child("data").get().then((snapshot) => {
         glob.html.portBox.appendChild(portTable.table);
         
         //-------------------changing currency----------------------
-        let refreshTableCur = function(table, iTo) {
+        let refreshTableCur = function(table, icols) {
             if (table.matrix.length > 1) {
-                let jFrom = getIndices(glob.data.tickers, colToArr(getCols(table.matrix, 0, false)));
-                if (jFrom.length > 0) {
-                    let iFrom = [2, 3, 4, 5];
-                    let jTo = math.range(1, table.matrix.length);
-                    table.matrix = insert(glob.data.assetMatrices[glob.cur], table.matrix, math.index(jFrom, iFrom), math.index(jTo, iTo));
-                    table.syncTableWithMatrix();
-                }
+                let matrix = new Matrix(table.matrix);
+                let indices = new Matrix(glob.data.tickers).fiof(matrix.decap().cols(0));
+                let source = new Matrix(glob.data.assetMatrices[glob.cur]).rows(indices).cols([2, 3, 4, 5]);
+                matrix = matrix.plugc(source, icols);
+                table.matrix = matrix.arr;
+                table.syncTableWithMatrix();
             }
         };
 
