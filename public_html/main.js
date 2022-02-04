@@ -280,39 +280,28 @@ dbRef.child("data").get().then((snapshot) => {
         //----------------------optimizing---------------------------       
         let optimize = function() {
             if (portTable.matrix.length > 2) {
-                let matrix = lessHeader(portTable.matrix);
-                let i = getIndices(glob.data.tickers, colToArr(math.column(matrix, 0)));
-                let covcc = math.divide(math.subset(glob.data.covcc[glob.cur], math.index(i, i)), 10000);
-                let er = math.divide(math.column(matrix, 6), 100);
-                let cov = 
-                        math.dotMultiply(
-                            math.subtract(math.exp(covcc), 1),
-                            math.multiply(math.add(1, er), math.transpose(math.add(1, er)))
-                        );
-                er = math.multiply(er, 100);
-                cov = math.multiply(cov, 10000);
+                let matrix = new Matrix(portTable.matrix);
+                let indices = new Matrix(glob.data.tickers).fiof(matrix.decap().cols(0));
+                let covcc = new Matrix(glob.data.covcc[glob.cur]).sub(indices).mult(0.0001);
+                let er = matrix.decap().cols(6).mult(0.01);
+                let cov = covcc.exp().minus(1).dot(er.plus(1).mult(er.plus(1).t()));
                 let rho = Number(glob.html.targetInput.value);
                 if (!isNaN(rho)) {
-                    let port = new Port(cov, er, rho);
-                    
+                    let port = new Port(cov.mult(10000).arr, er.mult(100).arr, rho);          
                     glob.html.optButton.disabled = true;
                     glob.html.thinker.style.visibility = "visible";
-
                     window.setTimeout(function() {
                         port.optimize();
-                        let money = math.multiply(roundWeights(port.w, 3, 1), 1000);
-                        let indicesFrom = math.index(math.range(0, money.length), 0);
-                        let indicesTo = math.index(math.range(1, money.length + 1), 1);
-                        portTable.matrix = insert(money, portTable.matrix, indicesFrom, indicesTo);
+                        let _money = new Matrix(port.w).round(3).mult(1000);
+                        portTable.matrix = matrix.plugc(_money, 1).arr;
                         portTable.recalculate();
                         portTable.refreshSummary();
                         glob.html.thinker.style.visibility = "hidden";
                         glob.html.optButton.disabled = false;
                     }, 1);
-                    
                 } else {
                     glob.html.targetInput.value = "NaN";
-                }
+                }             
             }
         };
         
