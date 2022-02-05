@@ -190,10 +190,9 @@ class Matrix {
         return new Matrix(math.subset(this.arr, math.index(irows, icols), c));
     }
     
-    plugc(b, icols, noHead=true) {
-        let i = 0;
-        if (noHead) i = 1;
-        return this.plug(b, math.range(i, b.arr.length + i)._data, icols);
+    plugc(b, icols) {
+        let i = this.arr.length - b.arr.length;
+        return this.plug(b, math.range(i, this.arr.length)._data, icols);
     }
     
     insRow(row, irow) {
@@ -331,7 +330,7 @@ class Matrix {
     roundw(digits, icol=0) {
         let r = this.cols(icol).t().round(digits);
         r.arr[0][r.arr[0].indexOf(r.max())] += math.round(1 - r.sum(), digits);
-        return this.replace(r.t(), icol);
+        return this.plugc(r.t(), icol);
     }
     
     sample(n) {
