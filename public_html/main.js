@@ -291,9 +291,9 @@ dbRef.child("data").get().then((snapshot) => {
                     glob.html.optButton.disabled = true;
                     glob.html.thinker.style.visibility = "visible";
                     window.setTimeout(function() {
-                        port.optimize();
-                        let _money = new Matrix(port.w).round(3).mult(1000);
-                        portTable.matrix = matrix.plugc(_money, 1).arr;
+                        port.optimize();                        
+                        let money = new Matrix(port.w).roundw(3).mult(1000);
+                        portTable.matrix = matrix.plugc(money, 1).arr;
                         portTable.recalculate();
                         portTable.refreshSummary();
                         glob.html.thinker.style.visibility = "hidden";
