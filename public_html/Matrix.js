@@ -137,7 +137,20 @@ class Matrix {
     }
     
     dot(b) {
-        return new Matrix(math.dotMultiply(this.arr, b.arr)); 
+        let c = [];
+        if (b.nrow() === 1 && b.ncol() === this.ncol()) {
+            this.arr.forEach((row) => c.push(math.dotMultiply(row, b.arr[0])));
+            c = new Matrix(c);
+        } else if (b.ncol() === 1 && b.nrow() === this.nrow()) {
+            c = this.t().dot(b.t()).t();
+        } else if (this.nrow() === 1 && b.ncol() === this.ncol()) {
+            c = b.dot(this);
+        } else if (this.ncol() === 1 && b.nrow() === this.nrow()) {
+            c = b.t().dot(this.t()).t();
+        } else {
+            c = new Matrix(math.dotMultiply(this.arr, b.arr));
+        }
+        return c;
     }
     
     minus(b) {
@@ -361,10 +374,6 @@ class Matrix {
             b.push(cs(this.arr[i]));
         }
         return new Matrix(b);
-    }
-    
-    breed(n, icol=0) {
-        return this.cols(icol).plus(Matrix.zeros(this.nrow(), n));
     }
     
 }
