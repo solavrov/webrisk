@@ -92,7 +92,7 @@ class Matrix {
     flat() {
         let x = [];
         for (let row of this.arr) for (let val of row) x.push(val);
-        return x;
+        return new Matrix(x);
     }
     
     val(irow=0, icol=0) {
@@ -307,10 +307,10 @@ class Matrix {
     }
     
     fiof(b, irow=0) {
-        b = b.flat();
         let indices = [];
-        if (Array.isArray(b)) {
-            for (let v of b) {
+        if (b.constructor.name === "Matrix") {
+            b = b.flat();
+            for (let v of b.arr[0]) {
                 indices.push(this.arr[irow].indexOf(v));
             }
         } else {
@@ -334,7 +334,7 @@ class Matrix {
     }
     
     sample(n) {
-        let i = this.diag().fiof(0)[0];
+        let i = this.diag().t().fiof(0);
         let cov = this.cross(i);
         let omega = cov.chol();
         let x = Matrix.rnorm(cov.nrow(), n);
