@@ -203,6 +203,8 @@ dbRef.child("data").get().then((snapshot) => {
                 total[4] = "&#8776; " + math.round(portSample.q(0.05),glob.accQTotal);
                 total[5] = "&#8776; " + math.round(portSample.q(0.01),glob.accQTotal);
                 glob.data.portSample = portSample.arr[0];
+            } else {
+                glob.data.portSample = [];
             }
             document.dispatchEvent(new Event("summarized"));
             return total;
