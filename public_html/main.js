@@ -395,7 +395,7 @@ dbRef.child("data").get().then((snapshot) => {
                 glob.html.thinker2.style.visibility = "visible";
                 window.setTimeout(function() {
                     for (let c of glob.curList) {
-                        glob.data.sample[c] = makeSample(glob.data.covcc[c], glob.sampleSize, true);
+                        glob.data.sample[c] = new Matrix(glob.data.covcc[c]).sample(glob.sampleSize).mult(0.01).exp().arr;
                     };
                     portTable.refreshSummary();
                     glob.html.thinker2.style.visibility = "hidden";
