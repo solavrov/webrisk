@@ -90,9 +90,13 @@ class Matrix {
     }
     
     flat() {
-        let x = [];
-        for (let row of this.arr) for (let val of row) x.push(val);
-        return new Matrix(x);
+        if (this.arr.length === 1) {
+            return this.clone();
+        } else {
+            let x = [];
+            for (let row of this.arr) for (let val of row) x.push(val);
+            return new Matrix(x);
+        }
     }
     
     val(irow=0, icol=0) {
@@ -220,7 +224,16 @@ class Matrix {
     }
     
     pow(p) {
-        return new Matrix(math.dotPow(this.arr, p));
+        let b = [];
+        if (p.constructor.name === "Matrix" && this.ncol() === 1) {
+            p = p.flat();
+            let a = this.t().arr[0];
+            for (let v of p.arr[0]) b.push(math.dotPow(a, v));
+            b = new Matrix(b).t();
+        } else {
+            b = new Matrix(math.dotPow(this.arr, p));
+        }
+        return b;
     }
     
     sq() {
