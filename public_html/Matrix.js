@@ -199,7 +199,7 @@ class Matrix {
         return this.plug(b, math.range(i, this.arr.length)._data, icols);
     }
     
-    insRow(row, irow) {
+    insRow(row, irow=this.nrow()) {
         let b = this.clone();
         if (irow >= 0) {
             b.arr.splice(irow, 0, row.arr[0]);
