@@ -347,11 +347,15 @@ class Matrix {
     }
     
     sample(n) {
-        let i = this.diag().t().fiof(0);
-        let cov = this.cross(i);
-        let omega = cov.chol();
-        let x = Matrix.rnorm(cov.nrow(), n);
-        return omega.mult(x).insRow(Matrix.zeros(1, n), i);
+        let s = Matrix.zeros(1, n);
+        if (this.arr.length > 1 || this.arr[0][0] !== 0) {
+            let i = this.diag().t().fiof(0);
+            let cov = this.cross(i);
+            let omega = cov.chol();
+            let x = Matrix.rnorm(cov.nrow(), n);
+            s = omega.mult(x).insRow(s, i);
+        }
+        return s;
     }
     
     cov() {
