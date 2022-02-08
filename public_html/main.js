@@ -465,21 +465,23 @@ dbRef.child("data").get().then((snapshot) => {
             function makeData(isPath) {
                 let d = [];
                 if (portTable.matrix.length > 1) {
-                    let matrix = lessHeader(portTable.matrix);
-                    let er = colToArr(math.divide(math.column(matrix, 6), 100));
-                    let money = math.column(matrix, 1);
-                    let w = colToArr(math.multiply(money, 1 / math.sum(money)));
-                    let qcc5 = math.log(1 + math.quantileSeq(glob.data.portSample, 0.05) / 100);
-                    let qcc95 = math.log(1 + math.quantileSeq(glob.data.portSample, 0.95) / 100);
-                    let indices = getIndices(glob.data.tickers, colToArr(math.column(matrix, 0)));
-                    let sigmacc = math.divide(getVals(glob.data.sigmacc[glob.cur], indices), 100);
-                    let ercc = math.add(math.log(math.add(1, er)), math.divide(math.square(sigmacc), -2));
-                    let erccAvg = math.sum(math.dotMultiply(ercc, w));
+                    let matrix = new Matrix(portTable.matrix).decap();
+                    let er = matrix.cols(6).mult(0.01);
+                    let money = matrix.cols(1);
+                    let w = money.mult(1 / money.sum());
+                    let portSample = new Matrix(glob.data.portSample);
+                    let qcc5 = math.log(1 + portSample.q(0.05) / 100);
+                    let qcc95 = math.log(1 + portSample.q(0.95) / 100);
+                    let indices = new Matrix(glob.data.tickers).fiof(matrix.cols(0));
+                    let sigmacc = new Matrix(glob.data.sigmacc[glob.cur]).t().rows(indices).mult(0.01);
+                    let ercc = er.plus(1).log().minus(sigmacc.sq().mult(0.5));
+                    let erccAvg = ercc.t().mult(w).val();
+                    let times = new Matrix(glob.chart.path.tPoints).mult(1 / glob.daysYear);
                     d = [
                         glob.chart.path.tPoints,
-                        math.round(getPortErForTimes(er, w,  glob.daysYear, glob.chart.path.tPoints), glob.chart.path.accEr),
-                        math.round(getQForTimes(qcc5, erccAvg, glob.daysYear, glob.chart.path.tPoints), glob.chart.path.accQ),
-                        math.round(getQForTimes(qcc95, erccAvg, glob.daysYear, glob.chart.path.tPoints), glob.chart.path.accQ)
+                        w.t().mult(er.plus(1).pow(times)).minus(1).mult(100).round(glob.chart.path.accEr).arr[0],
+                        times.mult(erccAvg).plus(times.sqrt().mult(qcc5-erccAvg)).exp().minus(1).mult(100).round(glob.chart.path.accQ).arr[0],
+                        times.mult(erccAvg).plus(times.sqrt().mult(qcc95-erccAvg)).exp().minus(1).mult(100).round(glob.chart.path.accQ).arr[0]
                     ];
                     let tips = [];
                     for (let i = 0; i < glob.chart.path.tPoints.length; i++) {
@@ -490,15 +492,18 @@ dbRef.child("data").get().then((snapshot) => {
                     d.splice(d.length, 0, nullArr, nullArr);
                     d = math.transpose(d);
                     if (isPath) {
-                        let covcc = math.divide(math.subset(glob.data.covcc[glob.cur], math.index(indices, indices)), 10000);
-                        let path = makePortPath(w, ercc, covcc, glob.daysYear, glob.chart.path.tPoints[glob.chart.path.tPoints.length - 1], glob.chart.path.tStep);
+                        let covcc = new Matrix(glob.data.covcc[glob.cur]).sub(indices).mult(0.0001);
+                        let n = glob.chart.path.tPoints[glob.chart.path.tPoints.length - 1] / glob.chart.path.tStep;
+                        let k = glob.chart.path.tStep / glob.daysYear;
+                        let r = w.t().mult(covcc.sample(n).mult(math.sqrt(k)).plus(ercc.mult(k)).cumsum().exp().minus(1).mult(100)).arr[0];
+                        let t = Matrix.zeros(1, n).plus(glob.chart.path.tStep).cumsum().arr[0];                        
                         d.push([0, null, null, null, null, 0, 'color: green']);
-                        for (let i = 0; i < path.r.length; i++) {
-                            if (path.r[i] >= 0) d.push([path.t[i], null, null, null, null, path.r[i], 'color: green']);
-                            if (path.r[i] < 0) d.push([path.t[i], null, null, null, null, path.r[i], 'color: red']);
+                        for (let i = 0; i < r.length; i++) {
+                            if (r[i] >= 0) d.push([t[i], null, null, null, null, r[i], 'color: green']);
+                            if (r[i] < 0) d.push([t[i], null, null, null, null, r[i], 'color: red']);
                         }
                     }
-                }
+                }             
                 return d;
             }
             
