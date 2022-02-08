@@ -179,11 +179,11 @@ class Matrix {
         return new Matrix(math.subset(this.arr, math.index(irows, icols)));
     }
     
-    rows(irows) {
+    rows(irows=0) {
         return this.sub(irows, math.range(0, this.ncol()));
     }
     
-    cols(icols) {
+    cols(icols=0) {
         return this.sub(math.range(0, this.nrow()), icols);
     }
     
