@@ -207,6 +207,10 @@ class Matrix {
         return b;
     }
     
+    insCol(col, icol=this.ncol()) {
+        return this.t().insRow(col.t(), icol).t();        
+    }
+    
     round(digits=0) {
         return new Matrix(math.round(this.arr, digits));
     }
