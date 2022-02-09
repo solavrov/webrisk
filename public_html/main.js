@@ -47,9 +47,9 @@ glob.accQ = 2;
 glob.accQTotal = 0;
 glob.accShare = 3;
 
-glob.data.tickers = [];
-glob.data.types = [];
-glob.data.names = [];
+//glob.data.tickers = [];
+//glob.data.types = [];
+//glob.data.names = [];
 glob.data.er = {};
 glob.data.cov = {};
 glob.data.ercc = {};
@@ -60,7 +60,7 @@ glob.data.sigmacc = {};
 glob.data.var95 = {};
 glob.data.var99 = {};
 glob.data.assetMatrices = {};
-glob.data.portSample = [];
+//glob.data.portSample = [];
 
 glob.chart.path.accEr = 3;
 glob.chart.path.accQ = 3;
@@ -119,7 +119,7 @@ dbRef.child("data").get().then((snapshot) => {
 
         //--------------getting data--------------
         glob.html.updateInfo.innerHTML = "<b>Last update:</b> " + snapshot.child("refresh_time").val();
-        glob.data.tickers = snapshot.child("tickers").val();
+        glob.data.tickers = new Matrix(snapshot.child("tickers").val());
         glob.data.types = snapshot.child("types").val();
         glob.data.names = snapshot.child("names").val();
         
@@ -133,7 +133,7 @@ dbRef.child("data").get().then((snapshot) => {
             glob.data.sigmacc[c] = math.sqrt(math.diag(glob.data.covcc[c]));
             glob.data.var95[c] = math.round(contToSimp(math.add(glob.data.ercc[c], math.multiply(glob.data.sigmacc[c], glob.alfa95))), glob.accQ);
             glob.data.var99[c] = math.round(contToSimp(math.add(glob.data.ercc[c], math.multiply(glob.data.sigmacc[c], glob.alfa99))), glob.accQ);
-            glob.data.assetMatrices[c] = math.transpose([glob.data.tickers, glob.data.names, glob.data.sigma[c], glob.data.var95[c], glob.data.var99[c], glob.data.er[c]]);
+            glob.data.assetMatrices[c] = math.transpose([glob.data.tickers.arr[0], glob.data.names, glob.data.sigma[c], glob.data.var95[c], glob.data.var99[c], glob.data.er[c]]);
         }
         
         //-----------------building asset tables-------------------
@@ -169,7 +169,7 @@ dbRef.child("data").get().then((snapshot) => {
             if (matrix.nrow() > 1) {
                 let money = matrix.decap().cols(1);
                 let w = money.mult(1 / money.sum()).round(glob.accShare);
-                let indices = new Matrix(glob.data.tickers).fiof(matrix.decap().cols(0));
+                let indices = glob.data.tickers.fiof(matrix.decap().cols(0));
                 let er = matrix.cols(6).decap().mult(0.01);
                 let sigmacc = new Matrix(glob.data.sigmacc[glob.cur]).t().rows(indices).mult(0.01);
                 let ercc = er.plus(1).log().minus(sigmacc.sq().mult(0.5));
@@ -191,7 +191,7 @@ dbRef.child("data").get().then((snapshot) => {
                 let money = matrix.cols(1);
                 let w = money.mult(1 / money.sum());
                 total[2] = math.round(w.sum(), glob.accShare);
-                let indices = new Matrix(glob.data.tickers).fiof(matrix.cols(0));
+                let indices = glob.data.tickers.fiof(matrix.cols(0));
                 let covcc = new Matrix(glob.data.covcc[glob.cur]).sub(indices).mult(0.0001);
                 let er = matrix.cols(6).mult(0.01);
                 let cov = covcc.exp().minus(1).dot(er.plus(1).t().gram());
@@ -228,9 +228,9 @@ dbRef.child("data").get().then((snapshot) => {
             return r;
         };
         let portToAsset = function(row) {
-            let i = glob.data.tickers.indexOf(row[0]);
+            let i = glob.data.tickers.arr[0].indexOf(row[0]);
             let r = [];
-            r.push(glob.data.tickers[i]);
+            r.push(glob.data.tickers.arr[0][i]);
             r.push(glob.data.names[i]);
             r.push(glob.data.sigma[glob.cur][i]);
             r.push(glob.data.var95[glob.cur][i]);
@@ -259,7 +259,7 @@ dbRef.child("data").get().then((snapshot) => {
         let refreshTableCur = function(table, icols) {
             if (table.matrix.length > 1) {
                 let matrix = new Matrix(table.matrix);
-                let indices = new Matrix(glob.data.tickers).fiof(matrix.decap().cols(0));
+                let indices =glob.data.tickers.fiof(matrix.decap().cols(0));
                 let source = new Matrix(glob.data.assetMatrices[glob.cur]).rows(indices).cols([2, 3, 4, 5]);
                 matrix = matrix.plugc(source, icols);
                 table.matrix = matrix.arr;
@@ -283,7 +283,7 @@ dbRef.child("data").get().then((snapshot) => {
         let optimize = function() {
             if (portTable.matrix.length > 2) {
                 let matrix = new Matrix(portTable.matrix);
-                let indices = new Matrix(glob.data.tickers).fiof(matrix.decap().cols(0));
+                let indices = glob.data.tickers.fiof(matrix.decap().cols(0));
                 let covcc = new Matrix(glob.data.covcc[glob.cur]).sub(indices).mult(0.0001);
                 let er = matrix.decap().cols(6).mult(0.01);
                 let cov = covcc.exp().minus(1).dot(er.plus(1).mult(er.plus(1).t()));
@@ -472,7 +472,7 @@ dbRef.child("data").get().then((snapshot) => {
                     let portSample = new Matrix(glob.data.portSample);
                     let qcc5 = math.log(1 + portSample.q(0.05) / 100);
                     let qcc95 = math.log(1 + portSample.q(0.95) / 100);
-                    let indices = new Matrix(glob.data.tickers).fiof(matrix.cols(0));
+                    let indices = glob.data.tickers.fiof(matrix.cols(0));
                     let sigmacc = new Matrix(glob.data.sigmacc[glob.cur]).t().rows(indices).mult(0.01);
                     let ercc = er.plus(1).log().minus(sigmacc.sq().mult(0.5));
                     let erccAvg = ercc.t().mult(w).val();
