@@ -211,6 +211,16 @@ class Matrix {
         return this.t().insRow(col.t(), icol).t();        
     }
     
+    merge(b) {
+        let c = this.clone();
+        if (c.ncol() === b.ncol()) {
+            for (let row of b.arr) c.arr.push(row);
+        } else if (c.nrow() === b.nrow()) {
+            c = c.t().merge(b).t();
+        }
+        return c;
+    }
+    
     round(digits=0) {
         return new Matrix(math.round(this.arr, digits));
     }
