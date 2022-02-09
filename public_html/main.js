@@ -5,24 +5,7 @@ import {CentralTable} from "./CentralTable.js";
 import {Port} from "./Port.js";
 import {Matrix} from "./Matrix.js";
 import {
-    getIndices, 
-    allIndices, 
-    getRows, 
-    getCols, 
-    insert, 
-    contToSimp,
-    insertCols,
-    getVals,
-    colToArr,
-    lessHeader,
-    roundWeights,
-    makeSample,
-    calcCov,
-    arrToMtx,
-    makeHistogramData,
-    getPortErForTimes,
-    getQForTimes,
-    makePortPath
+    makeHistogramData
 } from "./funs.js";
 
 
