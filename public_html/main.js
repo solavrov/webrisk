@@ -60,7 +60,7 @@ glob.data.sigmacc = {};
 glob.data.var95 = {};
 glob.data.var99 = {};
 glob.data.assetMatrices = {};
-//glob.data.portSample = [];
+glob.data.portSample = new Matrix([]);
 
 glob.chart.path.accEr = 3;
 glob.chart.path.accQ = 3;
@@ -120,43 +120,52 @@ dbRef.child("data").get().then((snapshot) => {
         //--------------getting data--------------
         glob.html.updateInfo.innerHTML = "<b>Last update:</b> " + snapshot.child("refresh_time").val();
         glob.data.tickers = new Matrix(snapshot.child("tickers").val());
-        glob.data.types = snapshot.child("types").val();
-        glob.data.names = snapshot.child("names").val();
+        glob.data.types = new Matrix(snapshot.child("types").val());
+        glob.data.names = new Matrix(snapshot.child("names").val());
         
         for (let c of glob.curList) {
-            glob.data.er[c] = math.round(snapshot.child("er_" + c).val(), glob.accEr);
-            glob.data.cov[c] = snapshot.child("cov_" + c).val();
-            glob.data.ercc[c] = math.round(snapshot.child("ercc_" + c).val(), glob.accEr);            
-            glob.data.covcc[c] = snapshot.child("covcc_" + c).val();
-            glob.data.sample[c] = makeSample(glob.data.covcc[c], glob.sampleSize, true);
-            glob.data.sigma[c] = math.round(math.sqrt(math.diag(glob.data.cov[c])), glob.accQ);
-            glob.data.sigmacc[c] = math.sqrt(math.diag(glob.data.covcc[c]));
-            glob.data.var95[c] = math.round(contToSimp(math.add(glob.data.ercc[c], math.multiply(glob.data.sigmacc[c], glob.alfa95))), glob.accQ);
-            glob.data.var99[c] = math.round(contToSimp(math.add(glob.data.ercc[c], math.multiply(glob.data.sigmacc[c], glob.alfa99))), glob.accQ);
-            glob.data.assetMatrices[c] = math.transpose([glob.data.tickers.arr[0], glob.data.names, glob.data.sigma[c], glob.data.var95[c], glob.data.var99[c], glob.data.er[c]]);
+            glob.data.er[c] = new Matrix(snapshot.child("er_" + c).val()).round(glob.accEr);
+            glob.data.cov[c] = new Matrix(snapshot.child("cov_" + c).val());
+            glob.data.ercc[c] = new Matrix(snapshot.child("ercc_" + c).val()).round(glob.accEr);
+            glob.data.covcc[c] = new Matrix(snapshot.child("covcc_" + c).val());
+            glob.data.sample[c] = glob.data.covcc[c].sample(glob.sampleSize).mult(0.01).exp();
+            glob.data.sigma[c] = glob.data.cov[c].diag().t().sqrt().round(glob.accQ);            
+            glob.data.sigmacc[c] = glob.data.covcc[c].diag().t().sqrt();            
+            glob.data.var95[c] = glob.data.sigmacc[c].mult(glob.alfa95).plus(glob.data.ercc[c]).toSimp().round(glob.accQ);
+            glob.data.var99[c] = glob.data.sigmacc[c].mult(glob.alfa99).plus(glob.data.ercc[c]).toSimp().round(glob.accQ);
+            glob.data.assetMatrices[c] = glob.data.tickers.
+                    insRow(glob.data.names).
+                    insRow(glob.data.sigma[c]).
+                    insRow(glob.data.var95[c]).
+                    insRow(glob.data.var99[c]).
+                    insRow(glob.data.er[c]).t();
         }
         
         //-----------------building asset tables-------------------
         let assetHeader = ["Ticker", glob.wideSpace + "Name" + glob.wideSpace, "Volatility", "VaR_95", "VaR_99", "Expected return"];
         let assetAligns = ["center", "left", "right", "right", "right", "right", "right"];
         
+        function pick(name) {
+            return glob.data.assetMatrices[glob.cur].rows(glob.data.types.aiof(name)).arr;
+        }
+        
         let stockUsTable = new SideTable(assetHeader, "us_stocks", "linked", assetAligns, "US Stocks");
-        stockUsTable.appendMatrix(getRows(glob.data.assetMatrices[glob.cur], allIndices(glob.data.types, "stock_us")));
-
+        stockUsTable.appendMatrix(pick("stock_us"));
+        
         let stockRuTable = new SideTable(assetHeader, "ru_stocks", "linked", assetAligns, "RU Stocks");
-        stockRuTable.appendMatrix(getRows(glob.data.assetMatrices[glob.cur], allIndices(glob.data.types, "stock_ru")));
+        stockRuTable.appendMatrix(pick("stock_ru"));
         
         let bondTable = new SideTable(assetHeader, "bonds", "linked", assetAligns, "Bonds");
-        bondTable.appendMatrix(getRows(glob.data.assetMatrices[glob.cur], allIndices(glob.data.types, "bond")));
+        bondTable.appendMatrix(pick("bond"));
 
         let commodityTable = new SideTable(assetHeader, "commodities", "linked", assetAligns, "Commodities");
-        commodityTable.appendMatrix(getRows(glob.data.assetMatrices[glob.cur], allIndices(glob.data.types, "commodity")));
+        commodityTable.appendMatrix(pick("commodity"));
         
         let etfTable = new SideTable(assetHeader, "etfs", "linked", assetAligns, "ETFs");
-        etfTable.appendMatrix(getRows(glob.data.assetMatrices[glob.cur], allIndices(glob.data.types, "etf")));
+        etfTable.appendMatrix(pick("etf"));
         
         let cryptoTable = new SideTable(assetHeader, "crypto", "linked", assetAligns, "Crypto");
-        cryptoTable.appendMatrix(getRows(glob.data.assetMatrices[glob.cur], allIndices(glob.data.types, "crypto")));
+        cryptoTable.appendMatrix(pick("crypto"));
         
         //-----------------building port table------------------
         let portHeader = ["Ticker", "Money", "Share", "Volatility", "VaR_95", "VaR_99", "Expected return"];
@@ -171,7 +180,7 @@ dbRef.child("data").get().then((snapshot) => {
                 let w = money.mult(1 / money.sum()).round(glob.accShare);
                 let indices = glob.data.tickers.fiof(matrix.decap().cols(0));
                 let er = matrix.cols(6).decap().mult(0.01);
-                let sigmacc = new Matrix(glob.data.sigmacc[glob.cur]).t().rows(indices).mult(0.01);
+                let sigmacc = glob.data.sigmacc[glob.cur].t().rows(indices).mult(0.01);
                 let ercc = er.plus(1).log().minus(sigmacc.sq().mult(0.5));
                 let var95 = ercc.plus(sigmacc.mult(glob.alfa95)).mult(100).toSimp().round(glob.accQ);
                 let var99 = ercc.plus(sigmacc.mult(glob.alfa99)).mult(100).toSimp().round(glob.accQ);
@@ -192,19 +201,18 @@ dbRef.child("data").get().then((snapshot) => {
                 let w = money.mult(1 / money.sum());
                 total[2] = math.round(w.sum(), glob.accShare);
                 let indices = glob.data.tickers.fiof(matrix.cols(0));
-                let covcc = new Matrix(glob.data.covcc[glob.cur]).sub(indices).mult(0.0001);
+                let covcc = glob.data.covcc[glob.cur].sub(indices).mult(0.0001);
                 let er = matrix.cols(6).mult(0.01);
                 let cov = covcc.exp().minus(1).dot(er.plus(1).t().gram());
                 total[3] = w.t().mult(cov).mult(w).sqrt().mult(100).round(glob.accQ).val();
-                total[6] = w.t().mult(er).mult(100).round(glob.accEr).val();                
-                let sample = new Matrix(glob.data.sample[glob.cur]).rows(indices);
+                total[6] = w.t().mult(er).mult(100).round(glob.accEr).val();
+                let sample = glob.data.sample[glob.cur].rows(indices);
                 let simpRatesSample = (er.plus(1)).dot(covcc.diag().mult(-0.5).exp()).dot(sample).minus(1).mult(100);
-                let portSample = w.t().mult(simpRatesSample);
-                total[4] = "&#8776; " + math.round(portSample.q(0.05),glob.accQTotal);
-                total[5] = "&#8776; " + math.round(portSample.q(0.01),glob.accQTotal);
-                glob.data.portSample = portSample.arr[0];
+                glob.data.portSample = w.t().mult(simpRatesSample);
+                total[4] = "&#8776; " + math.round(glob.data.portSample.q(0.05),glob.accQTotal);
+                total[5] = "&#8776; " + math.round(glob.data.portSample.q(0.01),glob.accQTotal);
             } else {
-                glob.data.portSample = [];
+                glob.data.portSample = new Matrix([]);
             }
             document.dispatchEvent(new Event("summarized"));
             return total;
@@ -231,11 +239,11 @@ dbRef.child("data").get().then((snapshot) => {
             let i = glob.data.tickers.arr[0].indexOf(row[0]);
             let r = [];
             r.push(glob.data.tickers.arr[0][i]);
-            r.push(glob.data.names[i]);
-            r.push(glob.data.sigma[glob.cur][i]);
-            r.push(glob.data.var95[glob.cur][i]);
-            r.push(glob.data.var99[glob.cur][i]);
-            r.push(glob.data.er[glob.cur][i]);
+            r.push(glob.data.names.arr[0][i]);
+            r.push(glob.data.sigma[glob.cur].arr[0][i]);
+            r.push(glob.data.var95[glob.cur].arr[0][i]);
+            r.push(glob.data.var99[glob.cur].arr[0][i]);
+            r.push(glob.data.er[glob.cur].arr[0][i]);
             return r;
         };
         
@@ -260,7 +268,7 @@ dbRef.child("data").get().then((snapshot) => {
             if (table.matrix.length > 1) {
                 let matrix = new Matrix(table.matrix);
                 let indices =glob.data.tickers.fiof(matrix.decap().cols(0));
-                let source = new Matrix(glob.data.assetMatrices[glob.cur]).rows(indices).cols([2, 3, 4, 5]);
+                let source = glob.data.assetMatrices[glob.cur].rows(indices).cols([2, 3, 4, 5]);
                 matrix = matrix.plugc(source, icols);
                 table.matrix = matrix.arr;
                 table.syncTableWithMatrix();
@@ -284,7 +292,7 @@ dbRef.child("data").get().then((snapshot) => {
             if (portTable.matrix.length > 2) {
                 let matrix = new Matrix(portTable.matrix);
                 let indices = glob.data.tickers.fiof(matrix.decap().cols(0));
-                let covcc = new Matrix(glob.data.covcc[glob.cur]).sub(indices).mult(0.0001);
+                let covcc = glob.data.covcc[glob.cur].sub(indices).mult(0.0001);
                 let er = matrix.decap().cols(6).mult(0.01);
                 let cov = covcc.exp().minus(1).dot(er.plus(1).mult(er.plus(1).t()));
                 let rho = Number(glob.html.targetInput.value);
@@ -369,7 +377,7 @@ dbRef.child("data").get().then((snapshot) => {
             let chart = new google.visualization.ColumnChart(glob.html.distChart);
 
             function draw() {
-                let data = makeHistogramData(glob.data.portSample, -100, 200, 5);
+                let data = makeHistogramData(glob.data.portSample.arr[0], -100, 200, 5);
                 let dataTable = new google.visualization.DataTable();
                 dataTable.addColumn('number', 'x');
                 dataTable.addColumn('number', 'y');
@@ -397,7 +405,7 @@ dbRef.child("data").get().then((snapshot) => {
                 glob.html.thinker2.style.visibility = "visible";
                 window.setTimeout(function() {
                     for (let c of glob.curList) {
-                        glob.data.sample[c] = new Matrix(glob.data.covcc[c]).sample(glob.sampleSize).mult(0.01).exp().arr;
+                        glob.data.sample[c] = glob.data.covcc[c].sample(glob.sampleSize).mult(0.01).exp();
                     };
                     portTable.refreshSummary();
                     glob.html.thinker2.style.visibility = "hidden";
@@ -469,11 +477,10 @@ dbRef.child("data").get().then((snapshot) => {
                     let er = matrix.cols(6).mult(0.01);
                     let money = matrix.cols(1);
                     let w = money.mult(1 / money.sum());
-                    let portSample = new Matrix(glob.data.portSample);
-                    let qcc5 = math.log(1 + portSample.q(0.05) / 100);
-                    let qcc95 = math.log(1 + portSample.q(0.95) / 100);
+                    let qcc5 = math.log(1 + glob.data.portSample.q(0.05) / 100);
+                    let qcc95 = math.log(1 + glob.data.portSample.q(0.95) / 100);
                     let indices = glob.data.tickers.fiof(matrix.cols(0));
-                    let sigmacc = new Matrix(glob.data.sigmacc[glob.cur]).t().rows(indices).mult(0.01);
+                    let sigmacc = glob.data.sigmacc[glob.cur].t().rows(indices).mult(0.01);
                     let ercc = er.plus(1).log().minus(sigmacc.sq().mult(0.5));
                     let erccAvg = ercc.t().mult(w).val();
                     let times = new Matrix(glob.chart.path.tPoints).mult(1 / glob.daysYear);
@@ -492,7 +499,7 @@ dbRef.child("data").get().then((snapshot) => {
                     d.splice(d.length, 0, nullArr, nullArr);
                     d = math.transpose(d);
                     if (isPath) {
-                        let covcc = new Matrix(glob.data.covcc[glob.cur]).sub(indices).mult(0.0001);
+                        let covcc = glob.data.covcc[glob.cur].sub(indices).mult(0.0001);
                         let n = glob.chart.path.tPoints[glob.chart.path.tPoints.length - 1] / glob.chart.path.tStep;
                         let k = glob.chart.path.tStep / glob.daysYear;
                         let r = w.t().mult(covcc.sample(n).mult(math.sqrt(k)).plus(ercc.mult(k)).cumsum().exp().minus(1).mult(100)).arr[0];
