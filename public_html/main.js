@@ -12,6 +12,7 @@ import {
 //-------------Global variables and constants-------------
 let glob = {
     data: {},
+    table: {},
     html: {},
     chart: {
         path: {}
@@ -30,9 +31,9 @@ glob.accQ = 2;
 glob.accQTotal = 0;
 glob.accShare = 3;
 
-//glob.data.tickers = [];
-//glob.data.types = [];
-//glob.data.names = [];
+glob.data.tickers = new Matrix([]);
+glob.data.types = new Matrix([]);
+glob.data.names = new Matrix([]);
 glob.data.er = {};
 glob.data.cov = {};
 glob.data.ercc = {};
@@ -132,28 +133,28 @@ dbRef.child("data").get().then((snapshot) => {
             return glob.data.assetMatrices[glob.cur].rows(glob.data.types.aiof(name)).arr;
         }
         
-        let stockUsTable = new SideTable(assetHeader, "us_stocks", "linked", assetAligns, "US Stocks");
-        stockUsTable.appendMatrix(pick("stock_us"));
+        glob.table.stockUs = new SideTable(assetHeader, "us_stocks", "linked", assetAligns, "US Stocks");
+        glob.table.stockUs.appendMatrix(pick("stock_us"));
         
-        let stockRuTable = new SideTable(assetHeader, "ru_stocks", "linked", assetAligns, "RU Stocks");
-        stockRuTable.appendMatrix(pick("stock_ru"));
+        glob.table.stockRu = new SideTable(assetHeader, "ru_stocks", "linked", assetAligns, "RU Stocks");
+        glob.table.stockRu.appendMatrix(pick("stock_ru"));
         
-        let bondTable = new SideTable(assetHeader, "bonds", "linked", assetAligns, "Bonds");
-        bondTable.appendMatrix(pick("bond"));
+        glob.table.bond = new SideTable(assetHeader, "bonds", "linked", assetAligns, "Bonds");
+        glob.table.bond.appendMatrix(pick("bond"));
 
-        let commodityTable = new SideTable(assetHeader, "commodities", "linked", assetAligns, "Commodities");
-        commodityTable.appendMatrix(pick("commodity"));
+        glob.table.commodity = new SideTable(assetHeader, "commodities", "linked", assetAligns, "Commodities");
+        glob.table.commodity.appendMatrix(pick("commodity"));
         
-        let etfTable = new SideTable(assetHeader, "etfs", "linked", assetAligns, "ETFs");
-        etfTable.appendMatrix(pick("etf"));
+        glob.table.etf = new SideTable(assetHeader, "etfs", "linked", assetAligns, "ETFs");
+        glob.table.etf.appendMatrix(pick("etf"));
         
-        let cryptoTable = new SideTable(assetHeader, "crypto", "linked", assetAligns, "Crypto");
-        cryptoTable.appendMatrix(pick("crypto"));
+        glob.table.crypto = new SideTable(assetHeader, "crypto", "linked", assetAligns, "Crypto");
+        glob.table.crypto.appendMatrix(pick("crypto"));
         
         //-----------------building port table------------------
         let portHeader = ["Ticker", "Money", "Share", "Volatility", "VaR_95", "VaR_99", "Expected return"];
         let portAligns = ["center", "right", "right", "right", "right", "right", "right"];
-        let portTable = new CentralTable(portHeader, "linked", "port", portAligns, "Portfolio");
+        glob.table.port = new CentralTable(portHeader, "linked", "port", portAligns, "Portfolio");
         
         //-----------------recalculator-----------------------
         let recalculator = function(matrix) {
@@ -172,7 +173,7 @@ dbRef.child("data").get().then((snapshot) => {
             }
             return matrix.arr;
         };
-        portTable.addRecalculator(recalculator);
+        glob.table.port.addRecalculator(recalculator);
         
         //-----------------summarizer--------------------
         let summarizer = function(matrix) {
@@ -200,11 +201,11 @@ dbRef.child("data").get().then((snapshot) => {
             document.dispatchEvent(new Event("summarized"));
             return total;
         };    
-        portTable.addSummary(summarizer, "sum", ["black", "black", "black", "black", "red", "red", "green"]);
+        glob.table.port.addSummary(summarizer, "sum", ["black", "black", "black", "black", "red", "red", "green"]);
         
         //-------------------adding inputs to port--------------------
-        portTable.addInput(1);
-        portTable.addInput(6);
+        glob.table.port.addInput(1);
+        glob.table.port.addInput(6);
         
         //------------------linking tables-----------------------
         let assetToPort = function(row) {
@@ -230,21 +231,21 @@ dbRef.child("data").get().then((snapshot) => {
             return r;
         };
         
-        portTable.link(stockUsTable, portToAsset, assetToPort);
-        portTable.link(stockRuTable, portToAsset, assetToPort);
-        portTable.link(bondTable, portToAsset, assetToPort);
-        portTable.link(commodityTable, portToAsset, assetToPort);
-        portTable.link(etfTable, portToAsset, assetToPort);
-        portTable.link(cryptoTable, portToAsset, assetToPort);
+        glob.table.port.link(glob.table.stockUs, portToAsset, assetToPort);
+        glob.table.port.link(glob.table.stockRu, portToAsset, assetToPort);
+        glob.table.port.link(glob.table.bond, portToAsset, assetToPort);
+        glob.table.port.link(glob.table.commodity, portToAsset, assetToPort);
+        glob.table.port.link(glob.table.etf, portToAsset, assetToPort);
+        glob.table.port.link(glob.table.crypto, portToAsset, assetToPort);
         
         //------------------appending tables to html--------------------
-        glob.html.stockUsBox.appendChild(stockUsTable.table);
-        glob.html.stockRuBox.appendChild(stockRuTable.table);
-        glob.html.bondBox.appendChild(bondTable.table);
-        glob.html.commodityBox.appendChild(commodityTable.table);
-        glob.html.etfBox.appendChild(etfTable.table);
-        glob.html.cryptoBox.appendChild(cryptoTable.table);
-        glob.html.portBox.appendChild(portTable.table);
+        glob.html.stockUsBox.appendChild(glob.table.stockUs.table);
+        glob.html.stockRuBox.appendChild(glob.table.stockRu.table);
+        glob.html.bondBox.appendChild(glob.table.bond.table);
+        glob.html.commodityBox.appendChild(glob.table.commodity.table);
+        glob.html.etfBox.appendChild(glob.table.etf.table);
+        glob.html.cryptoBox.appendChild(glob.table.crypto.table);
+        glob.html.portBox.appendChild(glob.table.port.table);
         
         //-------------------changing currency----------------------
         let refreshTableCur = function(table, icols) {
@@ -260,20 +261,20 @@ dbRef.child("data").get().then((snapshot) => {
 
         glob.html.curPick.forEach((elem) => elem.addEventListener("click", function(event) {
             glob.cur = event.target.value;
-            refreshTableCur(stockUsTable, [2, 3, 4, 5]);
-            refreshTableCur(stockRuTable, [2, 3, 4, 5]);
-            refreshTableCur(bondTable, [2, 3, 4, 5]);
-            refreshTableCur(commodityTable, [2, 3, 4, 5]);
-            refreshTableCur(etfTable, [2, 3, 4, 5]);
-            refreshTableCur(cryptoTable, [2, 3, 4, 5]);
-            refreshTableCur(portTable, [3, 4, 5, 6]);
-            portTable.refreshSummary();
+            refreshTableCur(glob.table.stockUs, [2, 3, 4, 5]);
+            refreshTableCur(glob.table.stockRu, [2, 3, 4, 5]);
+            refreshTableCur(glob.table.bond, [2, 3, 4, 5]);
+            refreshTableCur(glob.table.commodity, [2, 3, 4, 5]);
+            refreshTableCur(glob.table.etf, [2, 3, 4, 5]);
+            refreshTableCur(glob.table.crypto, [2, 3, 4, 5]);
+            refreshTableCur(glob.table.port, [3, 4, 5, 6]);
+            glob.table.port.refreshSummary();
         }));
         
         //----------------------optimizing---------------------------       
         let optimize = function() {
-            if (portTable.matrix.length > 2) {
-                let matrix = new Matrix(portTable.matrix);
+            if (glob.table.port.matrix.length > 2) {
+                let matrix = new Matrix(glob.table.port.matrix);
                 let indices = glob.data.tickers.fiof(matrix.decap().cols(0));
                 let covcc = glob.data.covcc[glob.cur].sub(indices).mult(0.0001);
                 let er = matrix.decap().cols(6).mult(0.01);
@@ -286,9 +287,9 @@ dbRef.child("data").get().then((snapshot) => {
                     window.setTimeout(function() {
                         port.optimize();                        
                         let money = new Matrix(port.w).roundw(3).mult(1000);
-                        portTable.matrix = matrix.plugc(money, 1).arr;
-                        portTable.recalculate();
-                        portTable.refreshSummary();
+                        glob.table.port.matrix = matrix.plugc(money, 1).arr;
+                        glob.table.port.recalculate();
+                        glob.table.port.refreshSummary();
                         glob.html.thinker.style.visibility = "hidden";
                         glob.html.optButton.disabled = false;
                     }, 1);
@@ -308,12 +309,6 @@ dbRef.child("data").get().then((snapshot) => {
                 }
             }
         });
-        
-//        targetInput.addEventListener("blur", function() {
-//            optimize();
-//        });
-        
-
         
         //---------------ditribution chart--------------------
         google.charts.setOnLoadCallback(initDist);
@@ -383,14 +378,14 @@ dbRef.child("data").get().then((snapshot) => {
         
         //-----------------new sample----------------
         glob.html.resampButton.addEventListener("click", function() {
-            if (portTable.matrix.length > 1) {
+            if (glob.table.port.matrix.length > 1) {
                 glob.html.resampButton.disabled = true;
                 glob.html.thinker2.style.visibility = "visible";
                 window.setTimeout(function() {
                     for (let c of glob.curList) {
                         glob.data.sample[c] = glob.data.covcc[c].sample(glob.sampleSize).mult(0.01).exp();
                     };
-                    portTable.refreshSummary();
+                    glob.table.port.refreshSummary();
                     glob.html.thinker2.style.visibility = "hidden";
                     glob.html.resampButton.disabled = false;
                 }, 1);
@@ -455,8 +450,8 @@ dbRef.child("data").get().then((snapshot) => {
             
             function makeData(isPath) {
                 let d = [];
-                if (portTable.matrix.length > 1) {
-                    let matrix = new Matrix(portTable.matrix).decap();
+                if (glob.table.port.matrix.length > 1) {
+                    let matrix = new Matrix(glob.table.port.matrix).decap();
                     let er = matrix.cols(6).mult(0.01);
                     let money = matrix.cols(1);
                     let w = money.mult(1 / money.sum());
@@ -517,7 +512,7 @@ dbRef.child("data").get().then((snapshot) => {
             }
             
             function draw() {
-                if (portTable.matrix.length > 1) {
+                if (glob.table.port.matrix.length > 1) {
                     glob.html.pathButton.disabled = true;
                     let d = makeData(true);
                     let data = makeChartData();
