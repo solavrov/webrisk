@@ -1,6 +1,5 @@
 /* global firebase, math, google */
 
-import {Port} from "./Port.js";
 import {Matrix} from "./Matrix.js";
 import {buildTables} from "./tables.js";
 import {getDataFromFB} from "./data.js";
@@ -9,10 +8,6 @@ import {setOptim} from "./optim.js";
 import {setSampleRefresh} from "./sample.js";
 import {buildDistChart} from "./distChart.js";
 import {buildPathChart} from "./pathChart.js";
-import {
-    makeHistogramData
-} from "./funs.js";
-
 
 //-------------Global variables and constants-------------
 let glob = {
@@ -78,7 +73,6 @@ glob.html.resampButton = document.getElementById("resampButton");
 glob.html.thinker2 = document.getElementById("thinker2");
 glob.html.pathButton = document.getElementById("pathButton");
 
-
 // -----------------Loading google charts------------------------
 google.charts.load('current', {'packages':['corechart'], 'language':'en'});
 
@@ -101,34 +95,16 @@ const dbRef = firebase.database().ref();
 
 // ------------------Main-------------------------
 dbRef.child("data").get().then((snapshot) => {
-  
     if (snapshot.exists()) {
-        
         glob.html.loader.style.visibility = "hidden";
         glob.html.body.style.visibility = "visible";
-
-        //--------------getting data--------------
         getDataFromFB(snapshot, glob);
-        
-        //---------building tables----------------
         buildTables(glob);
-        
-        //-------------------changing currency----------------------
         setCurPick(glob);
-        
-        //----------------------optimizing---------------------------       
         setOptim(glob);
-        
-        //-----------------new sample----------------
         setSampleRefresh(glob);
-        
-        
-        //---------------ditribution chart--------------------
         buildDistChart(glob);
-        
-        //-----------------path chart---------------------
         buildPathChart(glob);
-        
     } else {
       console.log("No data available");
     }
