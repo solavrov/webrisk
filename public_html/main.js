@@ -7,6 +7,7 @@ import {getDataFromFB} from "./data.js";
 import {setCurPick} from "./pick.js";
 import {setOptim} from "./optim.js";
 import {setSampleRefresh} from "./sample.js";
+import {buildDistChart} from "./distChart.js";
 import {
     makeHistogramData
 } from "./funs.js";
@@ -122,70 +123,7 @@ dbRef.child("data").get().then((snapshot) => {
         
         
         //---------------ditribution chart--------------------
-        google.charts.setOnLoadCallback(initDist);
-
-        function initDist() {
-
-            let options = {
-               
-                legend: { position: 'none' },
-                width: 600,
-                height: 360,
-
-                chartArea: {width: 500, height: 300},
-                
-                animation: {
-                    duration: 300,
-                    startup: true
-                },
-
-                bar: { 
-                   groupWidth: '100%'
-                },
-
-                hAxis: {
-                    title: 'returns',
-                    baselineColor: 'none',
-                    titleTextStyle: {
-                        italic: false
-                    }
-                },
-                
-                vAxis: {
-                    title: 'outcomes',
-                    titleTextStyle: {
-                        italic: false
-                    },
-                    minValue: 0,
-                    maxValue: 1
-                }
-                
-
-            };
-
-            let chart = new google.visualization.ColumnChart(glob.html.distChart);
-
-            function draw() {
-                let data = makeHistogramData(glob.data.portSample.arr[0], -100, 200, 5);
-                let dataTable = new google.visualization.DataTable();
-                dataTable.addColumn('number', 'x');
-                dataTable.addColumn('number', 'y');
-                dataTable.addColumn({type: 'string', role: 'tooltip'});
-                dataTable.addColumn({type: 'string', role: 'style'});
-                dataTable.addRows(data);
-                chart.draw(dataTable, options);
-            }
-
-            draw();
-            
-            let title = document.createElement('div');
-            title.className = 'chartTitle';
-            title.innerHTML = 'Distribution of returns';
-            glob.html.distChart.childNodes[0].childNodes[0].append(title);
-            
-            document.addEventListener("summarized", draw);
-
-        }
+        buildDistChart(glob);
         
         //-----------------path chart---------------------
         google.charts.setOnLoadCallback(initPath);
