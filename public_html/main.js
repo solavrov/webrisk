@@ -3,6 +3,7 @@
 import {Port} from "./Port.js";
 import {Matrix} from "./Matrix.js";
 import {buildTables} from "./tables.js";
+import {getDataFromFB} from "./data.js";
 import {
     makeHistogramData
 } from "./funs.js";
@@ -97,32 +98,12 @@ const dbRef = firebase.database().ref();
 dbRef.child("data").get().then((snapshot) => {
   
     if (snapshot.exists()) {
+        
         glob.html.loader.style.visibility = "hidden";
         glob.html.body.style.visibility = "visible";
 
         //--------------getting data--------------
-        glob.html.updateInfo.innerHTML = "<b>Last update:</b> " + snapshot.child("refresh_time").val();
-        glob.data.tickers = new Matrix(snapshot.child("tickers").val());
-        glob.data.types = new Matrix(snapshot.child("types").val());
-        glob.data.names = new Matrix(snapshot.child("names").val());
-        
-        for (let c of glob.curList) {
-            glob.data.er[c] = new Matrix(snapshot.child("er_" + c).val()).round(glob.accEr);
-            glob.data.cov[c] = new Matrix(snapshot.child("cov_" + c).val());
-            glob.data.ercc[c] = new Matrix(snapshot.child("ercc_" + c).val()).round(glob.accEr);
-            glob.data.covcc[c] = new Matrix(snapshot.child("covcc_" + c).val());
-            glob.data.sample[c] = glob.data.covcc[c].sample(glob.sampleSize).mult(0.01).exp();
-            glob.data.sigma[c] = glob.data.cov[c].diag().t().sqrt().round(glob.accQ);            
-            glob.data.sigmacc[c] = glob.data.covcc[c].diag().t().sqrt();            
-            glob.data.var95[c] = glob.data.sigmacc[c].mult(glob.alfa95).plus(glob.data.ercc[c]).toSimp().round(glob.accQ);
-            glob.data.var99[c] = glob.data.sigmacc[c].mult(glob.alfa99).plus(glob.data.ercc[c]).toSimp().round(glob.accQ);
-            glob.data.assetMatrices[c] = glob.data.tickers.
-                    insrow(glob.data.names).
-                    insrow(glob.data.sigma[c]).
-                    insrow(glob.data.var95[c]).
-                    insrow(glob.data.var99[c]).
-                    insrow(glob.data.er[c]).t();
-        }
+        getDataFromFB(snapshot, glob);
         
         //---------building tables----------------
         buildTables(glob);
@@ -131,7 +112,7 @@ dbRef.child("data").get().then((snapshot) => {
         let refreshTableCur = function(table, icols) {
             if (table.matrix.length > 1) {
                 let matrix = new Matrix(table.matrix);
-                let indices =glob.data.tickers.fiof(matrix.decap().cols(0));
+                let indices = glob.data.tickers.fiof(matrix.decap().cols(0));
                 let source = glob.data.assetMatrices[glob.cur].rows(indices).cols([2, 3, 4, 5]);
                 matrix = matrix.plugc(source, icols);
                 table.matrix = matrix.arr;
