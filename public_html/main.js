@@ -102,8 +102,8 @@ dbRef.child("data").get().then((snapshot) => {
         buildTables(glob);
         setCurPick(glob);
         setOptim(glob);
-        setSampleRefresh(glob);
         buildDistChart(glob);
+        setSampleRefresh(glob);
         buildPathChart(glob);
     } else {
       console.log("No data available");
