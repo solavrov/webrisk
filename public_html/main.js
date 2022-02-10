@@ -28,7 +28,7 @@ glob.cur = 'rub';
 glob.wideSpace = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
 glob.accEr = 2;
 glob.accQ = 2;
-glob.accQTotal = 0;
+glob.accQTotal = 1;
 glob.accShare = 3;
 
 glob.data.tickers = new Matrix([]);
@@ -118,11 +118,11 @@ dbRef.child("data").get().then((snapshot) => {
             glob.data.var95[c] = glob.data.sigmacc[c].mult(glob.alfa95).plus(glob.data.ercc[c]).toSimp().round(glob.accQ);
             glob.data.var99[c] = glob.data.sigmacc[c].mult(glob.alfa99).plus(glob.data.ercc[c]).toSimp().round(glob.accQ);
             glob.data.assetMatrices[c] = glob.data.tickers.
-                    insRow(glob.data.names).
-                    insRow(glob.data.sigma[c]).
-                    insRow(glob.data.var95[c]).
-                    insRow(glob.data.var99[c]).
-                    insRow(glob.data.er[c]).t();
+                    insrow(glob.data.names).
+                    insrow(glob.data.sigma[c]).
+                    insrow(glob.data.var95[c]).
+                    insrow(glob.data.var99[c]).
+                    insrow(glob.data.er[c]).t();
         }
         
         //-----------------building asset tables-------------------

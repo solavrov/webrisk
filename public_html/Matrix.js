@@ -199,7 +199,7 @@ class Matrix {
         return this.plug(b, math.range(i, this.arr.length)._data, icols);
     }
     
-    insRow(row, irow=this.nrow()) {
+    insrow(row, irow=this.nrow()) {
         let b = this.clone();
         if (irow >= 0) {
             b.arr.splice(irow, 0, row.arr[0]);
@@ -207,8 +207,8 @@ class Matrix {
         return b;
     }
     
-    insCol(col, icol=this.ncol()) {
-        return this.t().insRow(col.t(), icol).t();        
+    inscol(col, icol=this.ncol()) {
+        return this.t().insrow(col.t(), icol).t();        
     }
     
     merge(b) {
@@ -367,7 +367,7 @@ class Matrix {
             let cov = this.cross(i);
             let omega = cov.chol();
             let x = Matrix.rnorm(cov.nrow(), n);
-            s = omega.mult(x).insRow(s, i);
+            s = omega.mult(x).insrow(s, i);
         }
         return s;
     }
