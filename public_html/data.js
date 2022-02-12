@@ -12,7 +12,7 @@ function getDataFromFB(snapshot, glob) {
     for (let c of glob.curList) {
         glob.data.er[c] = new Matrix(snapshot.child("er_" + c).val()).round(glob.accEr);
         glob.data.cov[c] = new Matrix(snapshot.child("cov_" + c).val());
-        glob.data.ercc[c] = new Matrix(snapshot.child("ercc_" + c).val()).round(glob.accEr);
+        glob.data.ercc[c] = new Matrix(snapshot.child("ercc_" + c).val());
         glob.data.covcc[c] = new Matrix(snapshot.child("covcc_" + c).val());
         glob.data.sample[c] = glob.data.covcc[c].sample(glob.sampleSize).mult(0.01).exp();
         glob.data.sigma[c] = glob.data.cov[c].diag().t().sqrt().round(glob.accQ);            
