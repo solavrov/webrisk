@@ -25,7 +25,7 @@ function setOptim(glob) {
                     glob.table.port.refreshSummary();
                     glob.html.thinker.style.visibility = "hidden";
                     glob.html.optButton.disabled = false;
-                }, 1);
+                }, 50);
             } else {
                 glob.html.targetInput.value = "NaN";
             }             

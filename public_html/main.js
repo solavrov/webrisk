@@ -28,7 +28,7 @@ glob.cur = 'rub';
 glob.wideSpace = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
 glob.accEr = 2;
 glob.accQ = 2;
-glob.accQTotal = 0;
+glob.accQTotal = 1;
 glob.accShare = 3;
 
 glob.data.tickers = new Matrix([]);

@@ -16,7 +16,7 @@ function resample(glob, forEmpty) {
             glob.html.thinker3.style.visibility = "hidden";
             glob.html.resampButton.disabled = false;
             glob.html.sampPick.forEach((elem) => elem.disabled = false);
-        }, 1);
+        }, 50);
     }
 }
 
