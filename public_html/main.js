@@ -25,10 +25,10 @@ glob.alfa99 = -2.326;
 glob.sampleSize = 1000;
 glob.curList = ['rub', 'usd', 'eur'];
 glob.cur = 'rub';
-glob.wideSpace = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+glob.wideSpace = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
 glob.accEr = 2;
 glob.accQ = 2;
-glob.accQTotal = 1;
+glob.accQTotal = 0;
 glob.accShare = 3;
 
 glob.data.tickers = new Matrix([]);
@@ -42,7 +42,7 @@ glob.data.sample = {};
 glob.data.sigma = {};
 glob.data.sigmacc = {};
 glob.data.var95 = {};
-glob.data.var99 = {};
+glob.data.up95 = {};
 glob.data.assetMatrices = {};
 glob.data.portSample = new Matrix([]);
 

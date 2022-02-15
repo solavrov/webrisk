@@ -18,12 +18,11 @@ function getDataFromFB(snapshot, glob) {
         glob.data.sigma[c] = glob.data.cov[c].diag().t().sqrt().round(glob.accQ);            
         glob.data.sigmacc[c] = glob.data.covcc[c].diag().t().sqrt();            
         glob.data.var95[c] = glob.data.sigmacc[c].mult(glob.alfa95).plus(glob.data.ercc[c]).toSimp().round(glob.accQ);
-        glob.data.var99[c] = glob.data.sigmacc[c].mult(glob.alfa99).plus(glob.data.ercc[c]).toSimp().round(glob.accQ);
+        glob.data.up95[c] = glob.data.sigmacc[c].mult(-glob.alfa95).plus(glob.data.ercc[c]).toSimp().round(glob.accQ);
         glob.data.assetMatrices[c] = glob.data.tickers.
                 insrow(glob.data.names).
-                insrow(glob.data.sigma[c]).
                 insrow(glob.data.var95[c]).
-                insrow(glob.data.var99[c]).
+                insrow(glob.data.up95[c]).
                 insrow(glob.data.er[c]).t();
     }
 }

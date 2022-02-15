@@ -20,7 +20,7 @@ function setOptim(glob) {
                 window.setTimeout(function() {
                     port.optimize();                        
                     let money = new Matrix(port.w).roundw(3).mult(1000);
-                    glob.table.port.matrix = matrix.plugc(money, 1).arr;
+                    glob.table.port.matrix = matrix.plugc(money, 2).arr; //!!!
                     glob.table.port.recalculate();
                     glob.table.port.refreshSummary();
                     glob.html.thinker.style.visibility = "hidden";
