@@ -95,7 +95,7 @@ function buildTables(glob) {
         document.dispatchEvent(new Event("summarized"));
         return total;
     };    
-    glob.table.port.addSummary(summarizer, "sum", ["black", "black", "black", "red", "black", "black", "green"]);
+    glob.table.port.addSummary(summarizer, "sum", ["black", "black", "black", "red", "DodgerBlue", "green", "green"]);
 
     //-------------------adding inputs to port--------------------
     glob.table.port.addInput(1); //!!!
