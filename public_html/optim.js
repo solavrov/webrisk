@@ -10,7 +10,7 @@ function setOptim(glob) {
             let matrix = new Matrix(glob.table.port.matrix);
             let indices = glob.data.tickers.fiof(matrix.decap().cols(0));
             let covcc = glob.data.covcc[glob.cur].sub(indices).mult(0.0001);
-            let er = matrix.decap().cols(7).mult(0.01); //!!!
+            let er = matrix.decap().cols(6).mult(0.01); //!!!
             let cov = covcc.exp().minus(1).dot(er.plus(1).mult(er.plus(1).t()));
             let rho = Number(glob.html.targetInput.value);
             if (!isNaN(rho)) {
@@ -20,7 +20,7 @@ function setOptim(glob) {
                 window.setTimeout(function() {
                     port.optimize();                        
                     let money = new Matrix(port.w).roundw(3).mult(1000);
-                    glob.table.port.matrix = matrix.plugc(money, 2).arr; //!!!
+                    glob.table.port.matrix = matrix.plugc(money, 1).arr; //!!!
                     glob.table.port.recalculate();
                     glob.table.port.refreshSummary();
                     glob.html.thinker.style.visibility = "hidden";

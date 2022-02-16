@@ -37,35 +37,34 @@ function buildTables(glob) {
     //-----------------building port table------------------
     let portHeader = [ //!!!
         "Ticker", 
-        "Name", 
         "Money", 
         "Share", 
         "VaR_95", 
         "Median",
         "Upside_95", 
         "Expected return"];
-    let portAligns = ["center", "left", "right", "right", "right", "right", "right", "right"];
+    let portAligns = ["center", "right", "right", "right", "right", "right", "right"];
     glob.table.port = new CentralTable(portHeader, "linked", "port", portAligns, "Portfolio");
 
     //-----------------recalculator-----------------------
     let recalculator = function(matrix) {
         matrix = new Matrix(matrix);
         if (matrix.nrow() > 1) {
-            matrix = matrix.plugc(matrix.decap().cols(2).abs(), 2);
-            let money = matrix.decap().cols(2); //!!!
+            matrix = matrix.plugc(matrix.decap().cols(1).abs(), 1);
+            let money = matrix.decap().cols(1); //!!!
             if (money.sum() === 0) {
-                matrix = matrix.plugc(Matrix.zeros(matrix.nrow() - 1, 1).plus(100), 2);
-                money = matrix.decap().cols(2);
+                matrix = matrix.plugc(Matrix.zeros(matrix.nrow() - 1, 1).plus(100), 1);
+                money = matrix.decap().cols(1);
             }
             let w = money.mult(1 / money.sum()).round(glob.accShare);
             let indices = glob.data.tickers.fiof(matrix.decap().cols(0));
-            let er = matrix.cols(7).decap().mult(0.01); //!!!
+            let er = matrix.cols(6).decap().mult(0.01); //!!!
             let sigmacc = glob.data.sigmacc[glob.cur].t().rows(indices).mult(0.01);
             let ercc = er.plus(1).log().minus(sigmacc.sq().mult(0.5));
             let var95 = ercc.plus(sigmacc.mult(glob.alfa95)).mult(100).toSimp().round(glob.accQ);
             let med = ercc.mult(100).toSimp().round(glob.accQ);
             let up95 = ercc.plus(sigmacc.mult(-glob.alfa95)).mult(100).toSimp().round(glob.accQ);
-            matrix = matrix.plugc(w, 3).plugc(var95, 4).plugc(med, 5).plugc(up95, 6); //!!!
+            matrix = matrix.plugc(w, 2).plugc(var95, 3).plugc(med, 4).plugc(up95, 5); //!!!
         }
         return matrix.arr;
     };
@@ -73,40 +72,39 @@ function buildTables(glob) {
 
     //-----------------summarizer--------------------
     let summarizer = function(matrix) {
-        let total = ["TOTAL", "", 0, 0, 0, 0, 0, 0]; //!!!
+        let total = ["TOTAL", 0, 0, 0, 0, 0, 0]; //!!!
         if (matrix.length > 1) {
             matrix = new Matrix(matrix).decap();
-            total[2] = matrix.cols(2).sum(); //!!!
-            let money = matrix.cols(2); //!!!
+            total[1] = matrix.cols(1).sum(); //!!!
+            let money = matrix.cols(1); //!!!
             let w = money.mult(1 / money.sum());
-            total[3] = math.round(w.sum(), glob.accShare); //!!!
+            total[2] = math.round(w.sum(), glob.accShare); //!!!
             let indices = glob.data.tickers.fiof(matrix.cols(0));
             let covcc = glob.data.covcc[glob.cur].sub(indices).mult(0.0001);
-            let er = matrix.cols(7).mult(0.01); //!!!
-            total[7] = w.t().mult(er).mult(100).round(glob.accEr).val(); //!!!
+            let er = matrix.cols(6).mult(0.01); //!!!
+            total[6] = w.t().mult(er).mult(100).round(glob.accEr).val(); //!!!
             let sample = glob.data.sample[glob.cur].rows(indices);
             let simpRatesSample = (er.plus(1)).dot(covcc.diag().mult(-0.5).exp()).dot(sample).minus(1).mult(100);
             glob.data.portSample = w.t().mult(simpRatesSample);
-            total[4] = "&#8776; " + math.round(glob.data.portSample.q(0.05),glob.accQTotal); //!!!
-            total[5] = "&#8776; " + math.round(glob.data.portSample.q(0.5),glob.accQTotal); //!!!
-            total[6] = "&#8776; " + math.round(glob.data.portSample.q(0.95),glob.accQTotal); //!!!
+            total[3] = "&#8776; " + math.round(glob.data.portSample.q(0.05),glob.accQTotal); //!!!
+            total[4] = "&#8776; " + math.round(glob.data.portSample.q(0.5),glob.accQTotal); //!!!
+            total[5] = "&#8776; " + math.round(glob.data.portSample.q(0.95),glob.accQTotal); //!!!
         } else {
             glob.data.portSample = new Matrix([]);
         }
         document.dispatchEvent(new Event("summarized"));
         return total;
     };    
-    glob.table.port.addSummary(summarizer, "sum", ["black", "black", "black", "black", "red", "blue", "darkgreen", "green"]);
+    glob.table.port.addSummary(summarizer, "sum", ["black", "black", "black", "red", "blue", "darkgreen", "green"]);
 
     //-------------------adding inputs to port--------------------
-    glob.table.port.addInput(2); //!!!
-    glob.table.port.addInput(7); //!!!
+    glob.table.port.addInput(1); //!!!
+    glob.table.port.addInput(6); //!!!
 
     //------------------linking tables-----------------------
     let assetToPort = function(row) { //!!!
         let r = [];
         r.push(row[0]);
-        r.push(row[1]);
         r.push(100);
         r.push(0);
         r.push(row[2]);

@@ -23,7 +23,7 @@ function setCurPick(glob) {
         refreshTableCur(glob.table.commodity, [2, 3, 4, 5]);
         refreshTableCur(glob.table.etf, [2, 3, 4, 5]);
         refreshTableCur(glob.table.crypto, [2, 3, 4, 5]);
-        refreshTableCur(glob.table.port, [4, 5, 6, 7]);
+        refreshTableCur(glob.table.port, [3, 4, 5, 6]);
         glob.table.port.refreshSummary();
     }));
 }
