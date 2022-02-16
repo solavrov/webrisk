@@ -37,7 +37,7 @@ function buildTables(glob) {
     //-----------------building port table------------------
     let portHeader = [ //!!!
         "Ticker", 
-        glob.wideSpace + "Name" + glob.wideSpace, 
+        "Name", 
         "Money", 
         "Share", 
         "VaR_95", 
