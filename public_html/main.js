@@ -42,6 +42,7 @@ glob.data.sample = {};
 glob.data.sigma = {};
 glob.data.sigmacc = {};
 glob.data.var95 = {};
+glob.data.med = {};
 glob.data.up95 = {};
 glob.data.assetMatrices = {};
 glob.data.portSample = new Matrix([]);

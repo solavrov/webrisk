@@ -13,10 +13,11 @@ function buildTables(glob) {
         "Ticker", 
         glob.wideSpace + "Name" + glob.wideSpace, 
         "VaR_95", 
+        "Median",
         "Upside_95", 
         "Expected return"
     ];
-    let assetAligns = ["center", "left", "right", "right", "right"];
+    let assetAligns = ["center", "left", "right", "right", "right", "right"];
     function pick(name) {
         return glob.data.assetMatrices[glob.cur].rows(glob.data.types.aiof(name)).arr;
     }
@@ -40,9 +41,10 @@ function buildTables(glob) {
         "Money", 
         "Share", 
         "VaR_95", 
+        "Median",
         "Upside_95", 
         "Expected return"];
-    let portAligns = ["center", "left", "right", "right", "right", "right", "right"];
+    let portAligns = ["center", "left", "right", "right", "right", "right", "right", "right"];
     glob.table.port = new CentralTable(portHeader, "linked", "port", portAligns, "Portfolio");
 
     //-----------------recalculator-----------------------
@@ -52,12 +54,13 @@ function buildTables(glob) {
             let money = matrix.decap().cols(2); //!!!
             let w = money.mult(1 / money.sum()).round(glob.accShare);
             let indices = glob.data.tickers.fiof(matrix.decap().cols(0));
-            let er = matrix.cols(6).decap().mult(0.01); //!!!
+            let er = matrix.cols(7).decap().mult(0.01); //!!!
             let sigmacc = glob.data.sigmacc[glob.cur].t().rows(indices).mult(0.01);
             let ercc = er.plus(1).log().minus(sigmacc.sq().mult(0.5));
             let var95 = ercc.plus(sigmacc.mult(glob.alfa95)).mult(100).toSimp().round(glob.accQ);
+            let med = ercc.mult(100).toSimp().round(glob.accQ);
             let up95 = ercc.plus(sigmacc.mult(-glob.alfa95)).mult(100).toSimp().round(glob.accQ);
-            matrix = matrix.plugc(w, 3).plugc(var95, 4).plugc(up95, 5); //!!!
+            matrix = matrix.plugc(w, 3).plugc(var95, 4).plugc(med, 5).plugc(up95, 6); //!!!
         }
         return matrix.arr;
     };
@@ -65,7 +68,7 @@ function buildTables(glob) {
 
     //-----------------summarizer--------------------
     let summarizer = function(matrix) {
-        let total = ["TOTAL", "", 0, 0, 0, 0, 0]; //!!!
+        let total = ["TOTAL", "", 0, 0, 0, 0, 0, 0]; //!!!
         if (matrix.length > 1) {
             matrix = new Matrix(matrix).decap();
             total[2] = matrix.cols(2).sum(); //!!!
@@ -74,25 +77,25 @@ function buildTables(glob) {
             total[3] = math.round(w.sum(), glob.accShare); //!!!
             let indices = glob.data.tickers.fiof(matrix.cols(0));
             let covcc = glob.data.covcc[glob.cur].sub(indices).mult(0.0001);
-            let er = matrix.cols(6).mult(0.01);
-            let cov = covcc.exp().minus(1).dot(er.plus(1).t().gram());
-            total[6] = w.t().mult(er).mult(100).round(glob.accEr).val(); //!!!
+            let er = matrix.cols(7).mult(0.01); //!!!
+            total[7] = w.t().mult(er).mult(100).round(glob.accEr).val(); //!!!
             let sample = glob.data.sample[glob.cur].rows(indices);
             let simpRatesSample = (er.plus(1)).dot(covcc.diag().mult(-0.5).exp()).dot(sample).minus(1).mult(100);
             glob.data.portSample = w.t().mult(simpRatesSample);
             total[4] = "&#8776; " + math.round(glob.data.portSample.q(0.05),glob.accQTotal); //!!!
-            total[5] = "&#8776; " + math.round(glob.data.portSample.q(0.95),glob.accQTotal); //!!!
+            total[5] = "&#8776; " + math.round(glob.data.portSample.q(0.5),glob.accQTotal); //!!!
+            total[6] = "&#8776; " + math.round(glob.data.portSample.q(0.95),glob.accQTotal); //!!!
         } else {
             glob.data.portSample = new Matrix([]);
         }
         document.dispatchEvent(new Event("summarized"));
         return total;
     };    
-    glob.table.port.addSummary(summarizer, "sum", ["black", "black", "black", "black", "red", "red", "green"]);
+    glob.table.port.addSummary(summarizer, "sum", ["black", "black", "black", "black", "red", "blue", "darkgreen", "green"]);
 
     //-------------------adding inputs to port--------------------
     glob.table.port.addInput(2); //!!!
-    glob.table.port.addInput(6); //!!!
+    glob.table.port.addInput(7); //!!!
 
     //------------------linking tables-----------------------
     let assetToPort = function(row) { //!!!
@@ -104,6 +107,7 @@ function buildTables(glob) {
         r.push(row[2]);
         r.push(row[3]);
         r.push(row[4]);
+        r.push(row[5]);
         return r;
     };
     let portToAsset = function(row) { //!!!
@@ -112,6 +116,7 @@ function buildTables(glob) {
         r.push(glob.data.tickers.arr[0][i]);
         r.push(glob.data.names.arr[0][i]);
         r.push(glob.data.var95[glob.cur].arr[0][i]);
+        r.push(glob.data.med[glob.cur].arr[0][i]);
         r.push(glob.data.up95[glob.cur].arr[0][i]);
         r.push(glob.data.er[glob.cur].arr[0][i]);
         return r;

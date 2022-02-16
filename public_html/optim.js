@@ -10,7 +10,7 @@ function setOptim(glob) {
             let matrix = new Matrix(glob.table.port.matrix);
             let indices = glob.data.tickers.fiof(matrix.decap().cols(0));
             let covcc = glob.data.covcc[glob.cur].sub(indices).mult(0.0001);
-            let er = matrix.decap().cols(6).mult(0.01);
+            let er = matrix.decap().cols(7).mult(0.01); //!!!
             let cov = covcc.exp().minus(1).dot(er.plus(1).mult(er.plus(1).t()));
             let rho = Number(glob.html.targetInput.value);
             if (!isNaN(rho)) {
