@@ -51,7 +51,12 @@ function buildTables(glob) {
     let recalculator = function(matrix) {
         matrix = new Matrix(matrix);
         if (matrix.nrow() > 1) {
+            matrix = matrix.plugc(matrix.decap().cols(2).abs(), 2);
             let money = matrix.decap().cols(2); //!!!
+            if (money.sum() === 0) {
+                matrix = matrix.plugc(Matrix.zeros(matrix.nrow() - 1, 1).plus(100), 2);
+                money = matrix.decap().cols(2);
+            }
             let w = money.mult(1 / money.sum()).round(glob.accShare);
             let indices = glob.data.tickers.fiof(matrix.decap().cols(0));
             let er = matrix.cols(7).decap().mult(0.01); //!!!
