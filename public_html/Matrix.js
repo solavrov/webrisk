@@ -89,6 +89,10 @@ class Matrix {
         return this.arr[0].length;
     }
     
+    abs() {
+        return new Matrix(math.abs(this.arr));
+    }
+    
     flat() {
         if (this.arr.length === 1) {
             return this.clone();
