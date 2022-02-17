@@ -51,7 +51,7 @@ function buildPathChart(glob) {
             let d = [];
             if (glob.table.port.matrix.length > 1) {
                 let matrix = new Matrix(glob.table.port.matrix).decap();
-                let er = matrix.cols(6).mult(0.01); //!!!
+                let er = matrix.cols(5).mult(0.01); //!!!
                 let money = matrix.cols(1); //!!!
                 let w = money.mult(1 / money.sum());
                 let qcc5 = math.log(1 + glob.data.portSample.q(0.05) / 100);
