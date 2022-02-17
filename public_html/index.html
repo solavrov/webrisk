@@ -55,7 +55,7 @@
                 table-layout: auto;
                 font-family: Tahoma, sans-serif;
             }
-
+            
             table.linked {
                 border: 1px solid black;
                 width: 0;
@@ -149,32 +149,25 @@
             </tr>
         </table>
         
-<!--        <hr>
-        <table>
-            <tr>
-                <td>
-                    Sample size:
-                </td>
-                <td>
-                    <input type="radio" id="1Pick" name="sampPick" value="1000" checked="checked">
-                    <label for="1Pick">1000</label><br>
-                </td>
-                <td>
-                    <input type="radio" id="10Pick" name="sampPick" value="10000">
-                    <label for="10Pick">10000</label><br>
-                </td>
-                <td>
-                    <div id="thinker3" class="thinker"></div>
-                </td>
-            </tr>
-        </table>-->
-        
         <hr>
         <div id="portBox"></div>
         <br>
         
         <table>
             <tr>
+                
+                <td>
+                    &nbsp;&nbsp;&nbsp;&nbsp;New sample:
+                </td>
+                <td>
+                    <button id="resampButton">calculate</button>
+                </td>
+                <td>
+                    <div id="thinker2" class="thinker"></div>
+                </td>
+                
+                <td>&nbsp;&nbsp;</td>
+                
                 <td>
                     <label for="targetInput">Target return:</label>
                     <input type="text" id="targetInput" class="target" name="targetInput" maxlength="5" size="3">
@@ -185,6 +178,7 @@
                 <td>
                     <div id="thinker" class="thinker"></div>
                 </td>
+                
             </tr>
             
         </table>
@@ -192,21 +186,6 @@
         <hr>
         <br>
         <div id="distChart"></div>
-        
-        <br>
-        <table>
-            <tr>
-                <td>
-                    New sample:
-                </td>
-                <td>
-                    <button id="resampButton">calculate</button>
-                </td>
-                <td>
-                    <div id="thinker2" class="thinker"></div>
-                </td>
-            </tr>
-        </table>
         
         <hr>
         <br>
