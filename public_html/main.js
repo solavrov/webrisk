@@ -19,7 +19,7 @@ let glob = {
     }
 };
 
-glob.hor = 1;
+glob.hor = 10;
 glob.daysYear = 250;
 glob.alfa95 = -1.645;
 glob.alfa99 = -2.326;
@@ -39,14 +39,9 @@ glob.data.names = new Matrix([]);
 glob.data.er0 = {};
 glob.data.ercc0 = {};
 glob.data.covcc0 = {};
-
-//glob.data.er = {};
-//glob.data.ercc = {};
 glob.data.covcc = {};
 glob.data.sample = {};
 glob.data.sigmacc = {};
-//glob.data.var95 = {};
-//glob.data.up95 = {};
 glob.data.assetMatrices = {};
 glob.data.portSample = new Matrix([]);
 
