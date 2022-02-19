@@ -19,6 +19,7 @@ let glob = {
     }
 };
 
+glob.hor = 1;
 glob.daysYear = 250;
 glob.alfa95 = -1.645;
 glob.alfa99 = -2.326;
@@ -35,11 +36,9 @@ glob.data.tickers = new Matrix([]);
 glob.data.types = new Matrix([]);
 glob.data.names = new Matrix([]);
 glob.data.er = {};
-glob.data.cov = {};
 glob.data.ercc = {};
 glob.data.covcc = {};
 glob.data.sample = {};
-glob.data.sigma = {};
 glob.data.sigmacc = {};
 glob.data.var95 = {};
 glob.data.up95 = {};

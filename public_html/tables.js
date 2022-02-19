@@ -60,7 +60,6 @@ function buildTables(glob) {
             let sigmacc = glob.data.sigmacc[glob.cur].t().rows(indices).mult(0.01);
             let ercc = er.plus(1).log().minus(sigmacc.sq().mult(0.5));
             let var95 = ercc.plus(sigmacc.mult(glob.alfa95)).mult(100).toSimp().round(glob.accQ);
-            let med = ercc.mult(100).toSimp().round(glob.accQ);
             let up95 = ercc.plus(sigmacc.mult(-glob.alfa95)).mult(100).toSimp().round(glob.accQ);
             matrix = matrix.plugc(w, 2).plugc(var95, 3).plugc(up95, 4); //!!!
         }
