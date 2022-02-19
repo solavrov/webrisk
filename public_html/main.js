@@ -35,13 +35,18 @@ glob.accShare = 3;
 glob.data.tickers = new Matrix([]);
 glob.data.types = new Matrix([]);
 glob.data.names = new Matrix([]);
-glob.data.er = {};
-glob.data.ercc = {};
+
+glob.data.er0 = {};
+glob.data.ercc0 = {};
+glob.data.covcc0 = {};
+
+//glob.data.er = {};
+//glob.data.ercc = {};
 glob.data.covcc = {};
 glob.data.sample = {};
 glob.data.sigmacc = {};
-glob.data.var95 = {};
-glob.data.up95 = {};
+//glob.data.var95 = {};
+//glob.data.up95 = {};
 glob.data.assetMatrices = {};
 glob.data.portSample = new Matrix([]);
 
