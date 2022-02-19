@@ -108,15 +108,9 @@ function buildTables(glob) {
         r.push(row[4]);
         return r;
     };
-    let portToAsset = function(row) { //!!!
+    let portToAsset = function(row) {
         let i = glob.data.tickers.arr[0].indexOf(row[0]);
-        let r = [];
-        r.push(glob.data.tickers.arr[0][i]);
-        r.push(glob.data.names.arr[0][i]);
-        r.push(glob.data.var95[glob.cur].arr[0][i]);
-        r.push(glob.data.up95[glob.cur].arr[0][i]);
-        r.push(glob.data.er[glob.cur].arr[0][i]);
-        return r;
+        return glob.data.assetMatrices[glob.cur].arr[i];
     };
     glob.table.port.link(glob.table.stockUs, portToAsset, assetToPort);
     glob.table.port.link(glob.table.stockRu, portToAsset, assetToPort);
