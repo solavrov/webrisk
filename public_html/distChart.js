@@ -56,7 +56,13 @@ function buildDistChart(glob) {
         };
         let chart = new google.visualization.ColumnChart(glob.html.distChart);
         function draw() {
-            let data = makeHistogramData(glob.data.portSample.arr[0], -100, 200, 5);
+            let maxVal = 200;
+            let step = 5;
+            if (glob.hor > 1) {
+                maxVal = 1000;
+                step = 20;
+            }
+            let data = makeHistogramData(glob.data.portSample.arr[0], -100, maxVal, step);
             let dataTable = new google.visualization.DataTable();
             dataTable.addColumn('number', 'x');
             dataTable.addColumn('number', 'y');

@@ -71,8 +71,6 @@ glob.html.thinker = document.getElementById("thinker");
 glob.html.resampButton = document.getElementById("resampButton");
 glob.html.thinker2 = document.getElementById("thinker2");
 glob.html.pathButton = document.getElementById("pathButton");
-glob.html.sampPick = document.getElementsByName("sampPick");
-//glob.html.thinker3 = document.getElementById("thinker3");
 
 // -----------------Loading google charts------------------------
 google.charts.load('current', {'packages':['corechart'], 'language':'en'});
