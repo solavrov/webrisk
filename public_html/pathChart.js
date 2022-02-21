@@ -13,7 +13,10 @@ function buildPathChart(glob) {
             hAxis: {    
                 title: 'days',
                 titleTextStyle: { italic: false },
-                viewWindow: { min: 0, max: glob.chart.path.tPoints[glob.chart.path.tPoints.length - 1] * 1.01 }
+                viewWindow: { 
+                    min: 0, 
+                    max: glob.chart.path.tPoints.mult(glob.hor * 1.01).last() 
+                }
             },
             vAxis: {
                 title: 'return',
@@ -43,12 +46,13 @@ function buildPathChart(glob) {
         let options = {...options0};
         options.intervals = { 
             style: 'bars',
-            barWidth: glob.chart.path.tPoints[glob.chart.path.tPoints.length - 1] / glob.chart.path.tStep / 25 * 1.2,
+            barWidth: glob.chart.path.numSteps / 25 * 1.2,
             lineWidth: 2
         };
         delete options.animation;
         function makeData(isPath) {
             let d = [];
+            let tPoints = glob.chart.path.tPoints.mult(glob.hor);
             if (glob.table.port.matrix.length > 1) {
                 let matrix = new Matrix(glob.table.port.matrix).decap();
                 let er = matrix.cols(5).mult(0.01); //!!!
@@ -60,27 +64,26 @@ function buildPathChart(glob) {
                 let sigmacc = glob.data.sigmacc[glob.cur].t().rows(indices).mult(0.01);
                 let ercc = er.plus(1).log().minus(sigmacc.sq().mult(0.5));
                 let erccAvg = ercc.t().mult(w).val();
-                let times = new Matrix(glob.chart.path.tPoints).mult(1 / glob.daysYear);
+                let times = tPoints.mult(1 / glob.daysYear / glob.hor);
                 d = [
-                    glob.chart.path.tPoints,
+                    tPoints.arr[0],
                     w.t().mult(er.plus(1).pow(times)).minus(1).mult(100).round(glob.chart.path.accEr).arr[0],
                     times.mult(erccAvg).plus(times.sqrt().mult(qcc5-erccAvg)).exp().minus(1).mult(100).round(glob.chart.path.accQ).arr[0],
                     times.mult(erccAvg).plus(times.sqrt().mult(qcc95-erccAvg)).exp().minus(1).mult(100).round(glob.chart.path.accQ).arr[0]
                 ];
                 let tips = [];
-                for (let i = 0; i < glob.chart.path.tPoints.length; i++) {
+                for (let i = 0; i < tPoints.ncol(); i++) {
                     tips.push("expected return " + d[1][i] + "\n90% in [" + d[2][i] + ", " + d[3][i] + "]");
                 }
                 d.push(tips);
-                let nullArr = new Array(glob.chart.path.tPoints.length).fill(null);
+                let nullArr = new Array(tPoints.ncol()).fill(null);
                 d.splice(d.length, 0, nullArr, nullArr);
                 d = math.transpose(d);
                 if (isPath) {
                     let covcc = glob.data.covcc[glob.cur].sub(indices).mult(0.0001);
-                    let n = glob.chart.path.tPoints[glob.chart.path.tPoints.length - 1] / glob.chart.path.tStep;
-                    let k = glob.chart.path.tStep / glob.daysYear;
-                    let r = w.t().mult(covcc.sample(n).mult(math.sqrt(k)).plus(ercc.mult(k)).cumsum().exp().minus(1).mult(100)).arr[0];
-                    let t = Matrix.zeros(1, n).plus(glob.chart.path.tStep).cumsum().arr[0];                        
+                    let n = glob.chart.path.numSteps;
+                    let r = w.t().mult(covcc.sample(n).mult(math.sqrt(1/n)).plus(ercc.mult(1/n)).cumsum().exp().minus(1).mult(100)).arr[0];
+                    let t = Matrix.zeros(1, n).plus(tPoints.last() / n).cumsum().arr[0];                        
                     d.push([0, null, null, null, null, 0, 'color: green']);
                     for (let i = 0; i < r.length; i++) {
                         if (r[i] >= 0) d.push([t[i], null, null, null, null, r[i], 'color: green']);
@@ -112,7 +115,7 @@ function buildPathChart(glob) {
                 glob.html.pathButton.disabled = true;
                 let d = makeData(true);
                 let data = makeChartData();
-                for (let i = 0; i < glob.chart.path.tPoints.length; i++) data.addRows([d[i]]);
+                for (let i = 0; i < glob.chart.path.tPoints.ncol(); i++) data.addRows([d[i]]);
                 function go(j, k) {
                     if (k > d.length) k = d.length;
                     for (let i = j; i < k; i++) data.addRows([d[i]]);
@@ -122,7 +125,7 @@ function buildPathChart(glob) {
                         else glob.html.pathButton.disabled = false;
                     }, glob.chart.path.animDelay);
                 }
-                go(glob.chart.path.tPoints.length, glob.chart.path.tPoints.length + glob.chart.path.animStep);
+                go(glob.chart.path.tPoints.ncol(), glob.chart.path.tPoints.ncol() + glob.chart.path.animStep);
             }
         }
         draw0();

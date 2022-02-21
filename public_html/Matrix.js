@@ -106,6 +106,10 @@ class Matrix {
     val(irow=0, icol=0) {
         return this.arr[irow][icol];
     }
+
+    last() {
+        return this.arr[this.arr.length - 1][this.arr[0].length - 1];
+    }
     
     t() {
         return new Matrix(math.transpose(this.arr));

@@ -49,8 +49,8 @@ glob.chart.path.accEr = 3;
 glob.chart.path.accQ = 3;
 glob.chart.path.animDelay = 5;
 glob.chart.path.animStep = 3;
-glob.chart.path.tStep = 2;
-glob.chart.path.tPoints = [0, 50, 100, 150, 200, 250];
+glob.chart.path.tPoints = new Matrix([0, 50, 100, 150, 200, 250]);
+glob.chart.path.numSteps = 125;
 
 glob.html.body  = document.getElementById("body");
 glob.html.loader = document.getElementById("loader");
