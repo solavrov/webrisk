@@ -77,17 +77,23 @@ function buildPathChart(glob) {
                 }
                 d.push(tips);
                 let nullArr = new Array(tPoints.ncol()).fill(null);
-                d.splice(d.length, 0, nullArr, nullArr);
+                d.splice(d.length, 0, nullArr, nullArr, nullArr);
                 d = math.transpose(d);
                 if (isPath) {
                     let covcc = glob.data.covcc[glob.cur].sub(indices).mult(0.0001);
                     let n = glob.chart.path.numSteps;
                     let r = w.t().mult(covcc.sample(n).mult(math.sqrt(1/n)).plus(ercc.mult(1/n)).cumsum().exp().minus(1).mult(100)).arr[0];
                     let t = Matrix.zeros(1, n).plus(tPoints.last() / n).cumsum().arr[0];                        
-                    d.push([0, null, null, null, null, 0, 'color: green']);
+                    d.push([0, null, null, null, null, 0, 'color: green', 'time: 0\nreturn: 0']);
                     for (let i = 0; i < r.length; i++) {
-                        if (r[i] >= 0) d.push([t[i], null, null, null, null, r[i], 'color: green']);
-                        if (r[i] < 0) d.push([t[i], null, null, null, null, r[i], 'color: red']);
+                        if (r[i] >= 0) d.push([
+                            t[i], null, null, null, null, r[i], 
+                            'color: green', 'time: ' + math.round(t[i], 2) + '\nreturn: ' + math.round(r[i], 2)
+                        ]);
+                        if (r[i] < 0) d.push([
+                            t[i], null, null, null, null, r[i], 
+                            'color: red', 'time: ' + math.round(t[i], 2) + '\nreturn: ' + math.round(r[i], 2)
+                        ]);
                     }
                 }
             }             
@@ -102,6 +108,7 @@ function buildPathChart(glob) {
             data.addColumn({type:'string', role:'tooltip'});
             data.addColumn('number', 'return');
             data.addColumn({type: 'string', role: 'style'});
+            data.addColumn({type:'string', role:'tooltip'});
             return data;
         }
         function draw0() {
