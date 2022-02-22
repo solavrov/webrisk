@@ -19,7 +19,7 @@ let glob = {
     }
 };
 
-glob.hor = 10;
+glob.hor = 1;
 glob.daysYear = 250;
 glob.alfa95 = -1.645;
 glob.alfa99 = -2.326;
@@ -49,7 +49,7 @@ glob.chart.path.accEr = 3;
 glob.chart.path.accQ = 3;
 glob.chart.path.animDelay = 5;
 glob.chart.path.animStep = 3;
-glob.chart.path.tPoints = new Matrix([0, 50, 100, 150, 200, 250]);
+glob.chart.path.tPoints = new Matrix([0, 50, 100, 150, 200, 250]).mult(1 / 250);
 glob.chart.path.numSteps = 125;
 
 glob.html.body  = document.getElementById("body");

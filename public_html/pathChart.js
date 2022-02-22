@@ -11,7 +11,7 @@ function buildPathChart(glob) {
         let chart = new google.visualization.ComboChart(glob.html.pathChart);
         let options0 = {
             hAxis: {    
-                title: 'days',
+                title: 'years',
                 titleTextStyle: { italic: false },
                 viewWindow: { 
                     min: 0, 
@@ -64,7 +64,7 @@ function buildPathChart(glob) {
                 let sigmacc = glob.data.sigmacc[glob.cur].t().rows(indices).mult(0.01);
                 let ercc = er.plus(1).log().minus(sigmacc.sq().mult(0.5));
                 let erccAvg = ercc.t().mult(w).val();
-                let times = tPoints.mult(1 / glob.daysYear / glob.hor);
+                let times = tPoints.mult(1 / glob.hor);
                 d = [
                     tPoints.arr[0],
                     w.t().mult(er.plus(1).pow(times)).minus(1).mult(100).round(glob.chart.path.accEr).arr[0],
