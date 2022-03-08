@@ -2,7 +2,7 @@
 import {Matrix} from "./Matrix.js";
 import {resample} from "./sample.js";
 
-export {setCurPick, setSampPick};
+export {setCurPick};
 
 function setCurPick(glob) {
     let refreshTableCur = function(table, icols) {
@@ -28,9 +28,9 @@ function setCurPick(glob) {
     }));
 }
 
-function setSampPick(glob) {
-    glob.html.sampPick.forEach((elem) => elem.addEventListener("click", function(event) {
-        glob.sampleSize = Number(event.target.value);
-        resample(glob, true);
-    }));
-}
+//function setHorPick(glob) {
+//    glob.html.horPick.forEach((elem) => elem.addEventListener("click", function(event) {
+//        glob.hor = Number(event.target.value);
+//        resample(glob, true);
+//    }));
+//}

@@ -3,7 +3,7 @@
 import {Matrix} from "./Matrix.js";
 import {buildTables} from "./tables.js";
 import {getDataFromFB} from "./data.js";
-import {setCurPick, setSampPick} from "./pick.js";
+import {setCurPick} from "./pick.js";
 import {setOptim} from "./optim.js";
 import {setSampleRefresh} from "./sample.js";
 import {buildDistChart} from "./distChart.js";
@@ -74,6 +74,7 @@ glob.html.thinker = document.getElementById("thinker");
 glob.html.resampButton = document.getElementById("resampButton");
 glob.html.thinker2 = document.getElementById("thinker2");
 glob.html.pathButton = document.getElementById("pathButton");
+glob.html.horPick = document.getElementsByName("horPick");
 
 // -----------------Loading google charts------------------------
 google.charts.load('current', {'packages':['corechart'], 'language':'en'});
@@ -106,7 +107,6 @@ dbRef.child("data").get().then((snapshot) => {
         setOptim(glob);
         buildDistChart(glob);
         setSampleRefresh(glob);
-        //setSampPick(glob);
         buildPathChart(glob);
     } else {
       console.log("No data available");
