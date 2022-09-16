@@ -1,6 +1,6 @@
 
 import {Matrix} from "./Matrix.js";
-import {resample} from "./sample.js";
+import {calcData} from "./data.js";
 
 export {setCurPick};
 
@@ -31,6 +31,7 @@ function setCurPick(glob) {
 //function setHorPick(glob) {
 //    glob.html.horPick.forEach((elem) => elem.addEventListener("click", function(event) {
 //        glob.hor = Number(event.target.value);
-//        resample(glob, true);
+//        calcData(glob);
+//        
 //    }));
 //}

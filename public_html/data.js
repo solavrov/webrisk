@@ -1,7 +1,7 @@
 
 import {Matrix} from "./Matrix.js";
 
-export {getDataFromFB};
+export {getDataFromFB, calcData};
 
 function getDataFromFB(snapshot, glob) {
     glob.html.updateInfo.innerHTML = "<b>Last update:</b> " + snapshot.child("refresh_time").val();
