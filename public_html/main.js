@@ -1,4 +1,4 @@
-/* global firebase, math, google */
+/** global firebase, math, google **/
 
 import {Matrix} from "./Matrix.js";
 import {buildTables} from "./tables.js";
